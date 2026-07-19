@@ -1,0 +1,479 @@
+/* =========================================================
+   ATELIER — Design system
+   Direction : papier de calque + grille de plan d'architecte
+   ========================================================= */
+
+:root{
+  --paper:        #F5F5F1;
+  --paper-line:   #E4E2DA;
+  --ink:          #1C1F1D;
+  --ink-soft:     #5B5F58;
+  --blueprint:    #2B4C7E;
+  --blueprint-soft: #D8E1EC;
+  --brass:        #9C7A44;
+  --line:         #C9C5B8;
+  --white:        #FFFFFF;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body:    'Inter', -apple-system, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'Courier New', monospace;
+}
+
+*{ box-sizing: border-box; margin:0; padding:0; }
+
+html{ scroll-behavior:smooth; }
+
+body{
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a{ color:inherit; text-decoration:none; }
+ul{ list-style:none; }
+
+img{ max-width:100%; display:block; }
+
+/* ---------- grille de plan (texture de fond) ---------- */
+.blueprint-grid{
+  background-image:
+    linear-gradient(var(--paper-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* ---------- repères d'angle façon feuille de dessin technique ---------- */
+.crop-marks{ position:relative; }
+.crop-marks::before,
+.crop-marks::after{
+  content:"";
+  position:absolute;
+  width:18px; height:18px;
+  border-top:1.5px solid var(--ink);
+  border-left:1.5px solid var(--ink);
+  top:18px; left:18px;
+  opacity:.55;
+}
+.crop-marks::after{
+  top:auto; left:auto; bottom:18px; right:18px;
+  border-top:none; border-left:none;
+  border-bottom:1.5px solid var(--ink);
+  border-right:1.5px solid var(--ink);
+}
+
+/* ---------- conteneurs ---------- */
+.wrap{
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+/* ---------- en-tête commun ---------- */
+.site-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 26px 32px;
+  border-bottom: 1px solid var(--line);
+}
+.brand{
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: .01em;
+}
+.brand span{ color: var(--blueprint); }
+.brand-tag{
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* =========================================================
+   PAGE D'ACCUEIL
+   ========================================================= */
+
+.hero{
+  padding: 96px 32px 64px;
+  text-align:center;
+  position:relative;
+}
+.hero-eyebrow{
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--blueprint);
+  margin-bottom: 22px;
+}
+.hero h1{
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.4rem, 5vw, 4.2rem);
+  line-height: 1.08;
+  max-width: 820px;
+  margin: 0 auto 22px;
+}
+.hero h1 em{
+  font-style: italic;
+  color: var(--blueprint);
+}
+.hero p{
+  max-width: 520px;
+  margin: 0 auto;
+  color: var(--ink-soft);
+  font-size: 1.05rem;
+}
+
+/* ---------- formules ---------- */
+.formules{
+  padding: 40px 32px 120px;
+}
+.formules-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  max-width: 1180px;
+  margin: 0 auto 34px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 18px;
+}
+.formules-head h2{
+  font-family: var(--font-display);
+  font-weight:500;
+  font-size: 1.6rem;
+}
+.formules-head .count{
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  color: var(--ink-soft);
+}
+
+.formule-grid{
+  max-width: 1180px;
+  margin: 0 auto;
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.formule-card{
+  background: var(--paper);
+  padding: 40px 32px 36px;
+  display:flex;
+  flex-direction:column;
+  min-height: 460px;
+  transition: background .25s ease;
+}
+.formule-card:hover{ background: var(--white); }
+
+.formule-code{
+  font-family: var(--font-mono);
+  font-size: .74rem;
+  color: var(--ink-soft);
+  letter-spacing: .08em;
+  margin-bottom: 26px;
+}
+
+.formule-name{
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  margin-bottom: 10px;
+}
+
+.formule-desc{
+  color: var(--ink-soft);
+  font-size: .92rem;
+  margin-bottom: 26px;
+  flex-grow: 1;
+}
+
+.swatches{
+  display:flex;
+  gap:6px;
+  margin-bottom: 22px;
+}
+.swatches span{
+  width: 16px; height:16px;
+  border: 1px solid var(--ink);
+}
+
+.formule-list{
+  font-family: var(--font-mono);
+  font-size: .74rem;
+  color: var(--ink-soft);
+  margin-bottom: 30px;
+  border-top: 1px dashed var(--line);
+  padding-top: 16px;
+}
+.formule-list li{
+  display:flex;
+  justify-content:space-between;
+  padding: 3px 0;
+}
+
+.btn-choisir{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border: 1px solid var(--ink);
+  padding: 14px 18px;
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  background: transparent;
+  cursor:pointer;
+  transition: background .2s ease, color .2s ease;
+}
+.btn-choisir:hover{
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* variante signature (accent laiton) */
+.formule-card.signature .formule-code{ color: var(--brass); }
+.formule-card.signature .btn-choisir{ border-color: var(--brass); }
+.formule-card.signature .btn-choisir:hover{ background: var(--brass); color:var(--white); }
+
+.formule-card.selenite .formule-code{ color: var(--blueprint); }
+
+/* ---------- pied de page ---------- */
+.site-footer{
+  border-top: 1px solid var(--line);
+  padding: 26px 32px;
+  display:flex;
+  justify-content:space-between;
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  color: var(--ink-soft);
+  letter-spacing: .04em;
+}
+
+/* =========================================================
+   PAGE DE CONFIGURATION
+   ========================================================= */
+
+.banner{
+  position:relative;
+  height: 320px;
+  display:flex;
+  align-items:flex-end;
+  overflow:hidden;
+  border-bottom: 1px solid var(--line);
+}
+.banner-illustration{
+  position:absolute;
+  inset:0;
+  background: var(--ink);
+}
+.banner-illustration svg{
+  position:absolute;
+  bottom:0; left:0; right:0;
+  width:100%; height:auto;
+  opacity:.9;
+}
+.banner-overlay{
+  position:relative;
+  z-index:2;
+  width:100%;
+  padding: 30px 32px 26px;
+  background: linear-gradient(0deg, rgba(28,31,29,.82) 10%, rgba(28,31,29,0) 100%);
+}
+.banner-eyebrow{
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .16em;
+  text-transform:uppercase;
+  color: var(--blueprint-soft);
+  margin-bottom: 10px;
+}
+.banner-overlay h1{
+  font-family: var(--font-display);
+  font-weight:500;
+  color: var(--white);
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+}
+.banner-overlay h1 em{
+  font-style: italic;
+  color: #E7C8A4;
+}
+
+/* ---------- corps de configuration ---------- */
+.config-body{
+  padding: 56px 32px 120px;
+}
+.config-layout{
+  max-width: 1180px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns: 1fr 320px;
+  gap: 56px;
+  align-items:start;
+}
+
+.category{
+  margin-bottom: 54px;
+}
+.category:last-child{ margin-bottom:0; }
+
+.category-head{
+  display:flex;
+  align-items:baseline;
+  gap: 14px;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 10px;
+  margin-bottom: 22px;
+}
+.category-tag{
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  color: var(--blueprint);
+  border: 1px solid var(--blueprint);
+  padding: 2px 8px;
+}
+.category-head h2{
+  font-family: var(--font-display);
+  font-weight:500;
+  font-size: 1.35rem;
+}
+.category-sub{
+  margin-left:auto;
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  color: var(--ink-soft);
+}
+
+.option-list{ display:flex; flex-direction:column; }
+
+.option-row{
+  display:flex;
+  align-items:center;
+  gap: 18px;
+  padding: 16px 4px;
+  border-bottom: 1px dashed var(--line);
+}
+.option-row:hover{ background: rgba(43,76,126,.04); }
+
+.option-index{
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--ink-soft);
+  width: 28px;
+}
+
+.option-checkbox{
+  position:relative;
+  width: 20px; height:20px;
+  border: 1.5px solid var(--ink);
+  flex-shrink:0;
+  cursor:pointer;
+}
+.option-checkbox input{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+  margin:0;
+}
+.option-checkbox::after{
+  content:"";
+  position:absolute;
+  top:3px; left:6px;
+  width:5px; height:9px;
+  border-right: 2px solid var(--blueprint);
+  border-bottom: 2px solid var(--blueprint);
+  transform: rotate(45deg);
+  opacity:0;
+}
+.option-checkbox:has(input:checked){ border-color: var(--blueprint); background: var(--blueprint-soft); }
+.option-checkbox:has(input:checked)::after{ opacity:1; }
+
+.option-label{
+  flex-grow:1;
+  font-size: .96rem;
+  cursor:pointer;
+}
+.option-note{
+  display:block;
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+.option-level{
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  color: var(--ink-soft);
+  letter-spacing: .05em;
+  text-transform:uppercase;
+}
+
+/* ---------- panneau récap sticky ---------- */
+.recap{
+  position:sticky;
+  top: 24px;
+  border: 1px solid var(--ink);
+  padding: 26px 24px;
+  background: var(--white);
+}
+.recap-eyebrow{
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform:uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.recap h3{
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.recap-row{
+  display:flex;
+  justify-content:space-between;
+  font-size: .82rem;
+  color: var(--ink-soft);
+  padding: 6px 0;
+}
+.recap-count{ color: var(--ink); font-family: var(--font-mono); }
+
+.btn-envoyer{
+  width:100%;
+  margin-top: 22px;
+  padding: 15px;
+  background: var(--ink);
+  color: var(--paper);
+  border:none;
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor:pointer;
+  transition: background .2s ease;
+}
+.btn-envoyer:hover{ background: var(--blueprint); }
+
+.back-link{
+  display:inline-block;
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--ink-soft);
+  text-decoration: underline;
+}
+
+@media (max-width: 860px){
+  .formule-grid{ grid-template-columns: 1fr; }
+  .config-layout{ grid-template-columns: 1fr; }
+  .recap{ position:static; }
+}
