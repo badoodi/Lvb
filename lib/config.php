@@ -4,14 +4,14 @@
  *
  * Les identifiants de connexion à la base peuvent être surchargés par des
  * variables d'environnement (pratique en déploiement). À défaut, valeurs de
- * développement local pointant sur la base `atelier_architecture` (schema.sql).
+ * développement local pointant sur la base `missa2796059` (schema.sql).
  */
 
 return [
     'db' => [
         'host'    => getenv('DB_HOST') ?: '127.0.0.1',
         'port'    => getenv('DB_PORT') ?: '3306',
-        'name'    => getenv('DB_NAME') ?: 'atelier_architecture',
+        'name'    => getenv('DB_NAME') ?: 'missa2796059',
         'user'    => getenv('DB_USER') ?: 'root',
         'pass'    => getenv('DB_PASS') !== false ? getenv('DB_PASS') : '',
         'charset' => 'utf8mb4',

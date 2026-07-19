@@ -10,7 +10,7 @@ commandes) et **client** (choix d'un plan puis configuration détaillée par pi�
    ```bash
    mysql < schema.sql
    ```
-   Cela crée la base `atelier_architecture` avec le compte admin, les 3 formules,
+   Cela vide puis (re)crée les tables de la base `missa2796059` avec le compte admin, les 3 formules,
    les catégories, le plan de démo « Villa Baobab » et le devis de test.
 
 2. **Configuration** — renseigner les identifiants MySQL dans `lib/config.php`,

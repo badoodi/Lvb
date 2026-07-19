@@ -6,9 +6,35 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-CREATE DATABASE IF NOT EXISTS atelier_architecture
+-- Base de données de la plateforme.
+-- Sur un hébergement mutualisé, la base « missa2796059 » existe déjà : la ligne
+-- CREATE DATABASE ci-dessous est alors sans effet (IF NOT EXISTS) — vous pouvez
+-- la retirer si votre compte n'a pas le droit de créer des bases.
+CREATE DATABASE IF NOT EXISTS missa2796059
     CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE atelier_architecture;
+USE missa2796059;
+
+-- =========================================================
+-- 0. PURGE — on vide la base avant de (re)créer les tables,
+--    pour que ce script soit rejouable sans erreur.
+-- =========================================================
+DROP TABLE IF EXISTS configuration_produits;
+DROP TABLE IF EXISTS configurations;
+DROP TABLE IF EXISTS valeurs_champs_personnalises;
+DROP TABLE IF EXISTS definitions_champs_personnalises;
+DROP TABLE IF EXISTS produits;
+DROP TABLE IF EXISTS categories_produits;
+DROP TABLE IF EXISTS grande_categorie_formule;
+DROP TABLE IF EXISTS grandes_categories;
+DROP TABLE IF EXISTS plan_formule;
+DROP TABLE IF EXISTS documents_plan;
+DROP TABLE IF EXISTS pieces_plan;
+DROP TABLE IF EXISTS plans_villa;
+DROP TABLE IF EXISTS formules;
+DROP TABLE IF EXISTS visites;
+DROP TABLE IF EXISTS devis;
+DROP TABLE IF EXISTS clients;
+DROP TABLE IF EXISTS administrateurs;
 
 -- =========================================================
 -- 1. COMPTES
