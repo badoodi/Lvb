@@ -8,11 +8,22 @@
 require_once __DIR__ . '/db.php';
 
 if (session_status() === PHP_SESSION_NONE) {
+    // Repli : si le dossier d'enregistrement des sessions par défaut n'est pas
+    // inscriptible (fréquent en mutualisé), on bascule sur un dossier local
+    // « sessions/ » dans l'application, sinon les sessions ne persistent pas.
+    $saveDefaut = session_save_path();
+    if ($saveDefaut === '' || !is_dir($saveDefaut) || !is_writable($saveDefaut)) {
+        $saveLocal = dirname(__DIR__) . '/sessions';
+        if (!is_dir($saveLocal)) {
+            @mkdir($saveLocal, 0700, true);
+        }
+        if (is_dir($saveLocal) && is_writable($saveLocal)) {
+            session_save_path($saveLocal);
+        }
+    }
+
     // Cookie de session forcé sur le chemin « / » pour qu'il soit UNIQUE et
-    // partagé entre la racine (index.php), /client et /admin. Sans ça, certains
-    // hébergements créent un cookie par dossier : la racine croit l'utilisateur
-    // connecté et redirige vers /client, qui ne voit pas la session et renvoie
-    // vers index.php?err=client -> boucle de redirections.
+    // partagé entre la racine (index.php), /client et /admin.
     session_set_cookie_params([
         'path'     => '/',
         'httponly' => true,
@@ -131,6 +142,12 @@ function exiger_admin(): array
 {
     $admin = admin_connecte();
     if (!$admin) {
+        // On N'REDIRIGE PAS (évite toute boucle de redirection) : on affiche la
+        // page de connexion directement, sur place, en HTTP 200.
+        if (function_exists('rendre_connexion')) {
+            rendre_connexion('Merci de vous connecter avec un compte administrateur.', 'admin');
+            exit;
+        }
         redirect(base_url() . '/index.php?err=admin');
     }
     return $admin;
@@ -140,6 +157,10 @@ function exiger_client(): array
 {
     $client = client_connecte();
     if (!$client) {
+        if (function_exists('rendre_connexion')) {
+            rendre_connexion('Merci de vous connecter à votre espace client.', 'client');
+            exit;
+        }
         redirect(base_url() . '/index.php?err=client');
     }
     return $client;
