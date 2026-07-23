@@ -1,7 +1,8 @@
 /* =========================================================
    LES VILLAS BLANCHES — Design system
    Direction : SaaS clair et moderne (cartes arrondies, ombres
-   douces, accent violet + corail). Fond lavande, sans grille.
+   douces). Palette bleue reprise du logo client (bleu primaire),
+   fond bleu très clair, sans grille.
    NB : seuls les styles changent — le balisage des pages est
    inchangé (mêmes classes).
    ========================================================= */
@@ -9,18 +10,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap');
 
 :root{
-  --paper:          #F4F5FB;   /* fond de page (lavande clair) */
-  --paper-line:     #EDEFF7;
+  --paper:          #F2F5FC;   /* fond de page (bleu très clair) */
+  --paper-line:     #E7ECF7;
   --card:           #FFFFFF;
-  --ink:            #272B41;    /* texte principal */
-  --ink-soft:       #868DA6;    /* texte secondaire */
-  --blueprint:      #6C4CF1;    /* accent principal (violet) */
-  --blueprint-soft: #ECE8FD;
-  --brass:          #FF7A59;    /* accent secondaire (corail) */
-  --brass-soft:     #FFE9E2;
-  --green:          #16B364;
-  --amber:          #F5A623;
-  --line:           #E9EBF4;
+  --ink:            #14203A;    /* texte principal (bleu nuit) */
+  --ink-soft:       #6B7796;    /* texte secondaire */
+  --blueprint:      #16268F;    /* couleur PRIMAIRE — bleu du logo client */
+  --blueprint-soft: #E5E8F6;
+  --brass:          #3D63C9;    /* accent secondaire (bleu azur du logo) */
+  --brass-soft:     #E6ECFA;
+  --green:          #16A34A;
+  --amber:          #E0A526;
+  --line:           #E6EAF4;
   --white:          #FFFFFF;
 
   --radius:     18px;
@@ -101,10 +102,10 @@ img{ max-width:100%; display:block; }
   background: var(--blueprint); color:#fff; border:none;
   border-radius: var(--radius-sm);
   font-family: var(--font-body); font-weight:600; font-size:.92rem;
-  cursor:pointer; box-shadow: 0 8px 20px rgba(108,76,241,.28);
+  cursor:pointer; box-shadow: 0 8px 20px rgba(22,38,143,.26);
   transition: transform .15s, box-shadow .15s, background .2s;
 }
-.btn-envoyer:hover{ background:#5b3fe0; transform: translateY(-1px); box-shadow:0 12px 26px rgba(108,76,241,.34); }
+.btn-envoyer:hover{ background:#111e73; transform: translateY(-1px); box-shadow:0 12px 26px rgba(22,38,143,.32); }
 
 .btn-line{
   display:inline-flex; align-items:center; justify-content:center;
@@ -256,7 +257,7 @@ img{ max-width:100%; display:block; }
 .plan-card:hover{ transform: translateY(-4px); box-shadow: var(--shadow); }
 .plan-visuel{ aspect-ratio:16/10; overflow:hidden; }
 .plan-visuel img{ width:100%; height:100%; object-fit:cover; }
-.plan-visuel-vide{ width:100%; height:100%; background: linear-gradient(135deg, var(--blueprint-soft), #F2EFFE); }
+.plan-visuel-vide{ width:100%; height:100%; background: linear-gradient(135deg, var(--blueprint-soft), #EEF2FC); }
 .plan-info{ padding:24px; display:flex; flex-direction:column; flex-grow:1; }
 .plan-info h3{ font-family: var(--font-display); font-weight:600; font-size:1.3rem; margin-bottom:8px; }
 .plan-info p{ color: var(--ink-soft); font-size:.9rem; margin-bottom:18px; }
@@ -295,7 +296,7 @@ img{ max-width:100%; display:block; }
 }
 .btn-choisir:hover{ background: var(--blueprint); color:#fff; }
 
-.formule-card.signature{ border-color:#FFD9CE; }
+.formule-card.signature{ border-color:#C9D6F2; }
 .formule-card.signature .formule-code{ color: var(--brass); }
 .formule-card.signature .btn-choisir{ background: var(--brass-soft); color: var(--brass); }
 .formule-card.signature .btn-choisir:hover{ background: var(--brass); color:#fff; }
@@ -311,7 +312,7 @@ img{ max-width:100%; display:block; }
 }
 .banner-illustration{
   position:absolute; inset:0;
-  background: linear-gradient(120deg, #6C4CF1 0%, #8E6BFF 55%, #FF7A59 130%);
+  background: linear-gradient(120deg, #16268F 0%, #2C46B8 55%, #5E86DE 130%);
 }
 .banner-overlay{
   position:relative; z-index:2; width:100%; padding:36px 34px 30px;
@@ -325,7 +326,7 @@ img{ max-width:100%; display:block; }
   font-family: var(--font-display); font-weight:600; color:#fff;
   font-size: clamp(1.6rem, 3vw, 2.4rem); letter-spacing:-.01em;
 }
-.banner-overlay h1 em{ font-style:normal; color:#FFD9CE; }
+.banner-overlay h1 em{ font-style:normal; color:#B9CDF3; }
 
 .config-body{ padding:36px 32px 100px; }
 .config-layout{
@@ -454,7 +455,7 @@ img{ max-width:100%; display:block; }
   border-radius: var(--radius); padding:22px; box-shadow: var(--shadow-sm);
   display:flex; flex-direction:column; gap:8px;
 }
-.stat-card.accent{ background: linear-gradient(135deg, #6C4CF1, #8E6BFF); border:none; }
+.stat-card.accent{ background: linear-gradient(135deg, #16268F, #3D63C9); border:none; }
 .stat-card.accent .stat-label,
 .stat-card.accent .stat-value{ color:#fff; }
 .stat-label{ font-size:.74rem; font-weight:500; letter-spacing:.02em; text-transform:uppercase; color: var(--ink-soft); }
