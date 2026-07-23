@@ -529,3 +529,76 @@ img{ max-width:100%; display:block; }
   .site-header{ padding:18px 20px; flex-wrap:wrap; gap:12px; }
   .header-nav{ gap:14px; }
 }
+
+/* =========================================================
+   AJOUTS — choix par pièce (produit d'abord + accordéon flottant)
+   & upload d'image admin
+   ========================================================= */
+
+/* plus d'air entre les catégories (Fer, Béton, Hourdis…) */
+.grande-cat .category{ margin-bottom:44px; padding-top:6px; }
+.grande-cat .category:first-of-type{ padding-top:0; }
+.grande-cat .category + .category{ border-top:1px solid var(--line); padding-top:34px; }
+
+/* espace vertical accru entre les options (lignes produits) */
+.piece-first .option-row,
+.grande-cat .option-list > .option-row{ margin-top:10px; }
+.piece-first .option-row:first-child,
+.grande-cat .option-list > .option-row:first-child{ margin-top:0; }
+
+/* ligne produit avec bouton d'affectation */
+.option-assign{ position:relative; gap:14px; flex-wrap:wrap; }
+.option-assign .option-label{ flex:1 1 auto; }
+
+.choisir-piece{
+  display:inline-flex; align-items:center; gap:6px;
+  border:1px solid var(--blueprint); background:var(--white);
+  color:var(--blueprint); border-radius:var(--radius-pill);
+  padding:8px 16px; font-family:var(--font-body); font-weight:600; font-size:.82rem;
+  cursor:pointer; transition:all .16s;
+}
+.choisir-piece:hover{ background:var(--blueprint-soft); }
+.choisir-piece.actif{ background:var(--blueprint); color:#fff; }
+.piece-count{ font-weight:500; opacity:.9; }
+
+/* menu flottant */
+.piece-menu{
+  position:absolute; top:calc(100% + 8px); right:0; z-index:40;
+  width:320px; max-width:88vw;
+  background:var(--white); border:1px solid var(--line);
+  border-radius:var(--radius); box-shadow:var(--shadow);
+  padding:14px; animation:menuIn .14s ease;
+}
+@keyframes menuIn{ from{ opacity:0; transform:translateY(-4px);} to{ opacity:1; transform:none;} }
+.piece-menu-head{ font-weight:600; font-size:.86rem; margin-bottom:10px; color:var(--ink); }
+
+.etage-accordion{ display:flex; flex-direction:column; gap:6px; }
+.etage-item{ border:1px solid var(--line); border-radius:var(--radius-sm); overflow:hidden; }
+.etage-head{
+  width:100%; display:flex; align-items:center; justify-content:space-between;
+  padding:11px 14px; background:var(--paper); border:none; cursor:pointer;
+  font-family:var(--font-body); font-weight:600; font-size:.88rem; color:var(--ink); text-align:left;
+}
+.etage-head:hover{ background:var(--blueprint-soft); }
+.etage-head .chev{ color:var(--blueprint); font-weight:700; transition:transform .16s; }
+.etage-head.ouvert{ background:var(--blueprint-soft); color:var(--blueprint); }
+.etage-head.ouvert .chev{ transform:rotate(45deg); }
+.etage-pieces{ padding:8px 12px 12px; display:flex; flex-direction:column; gap:4px; }
+
+.piece-check{ display:flex; align-items:flex-start; gap:10px; padding:8px 6px; border-radius:var(--radius-sm); cursor:pointer; }
+.piece-check:hover{ background:#FAFBFE; }
+.piece-check input{ width:18px; height:18px; margin-top:2px; accent-color:var(--blueprint); flex-shrink:0; }
+.piece-check-txt{ font-size:.9rem; line-height:1.35; }
+.piece-check-txt small{ display:block; color:var(--ink-soft); font-size:.76rem; }
+
+/* récap lecture seule (pièce -> produit) */
+.assign-recap{ display:flex; flex-direction:column; }
+.assign-recap li{ display:flex; justify-content:space-between; gap:16px; padding:10px 2px; border-bottom:1px dashed var(--line); font-size:.92rem; }
+.assign-recap li:last-child{ border-bottom:none; }
+
+/* miniature d'image dans les formulaires admin */
+.crud-thumb{ max-width:160px; max-height:120px; border:1px solid var(--line); border-radius:var(--radius-sm); margin-bottom:8px; object-fit:cover; }
+
+@media (max-width: 520px){
+  .piece-menu{ position:fixed; left:16px; right:16px; width:auto; top:auto; bottom:16px; }
+}

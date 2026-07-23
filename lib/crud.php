@@ -81,6 +81,22 @@ function crud_page(array $cfg): void
                 }
                 continue;
             }
+            if ($type === 'image') {
+                // Chemin actuel conservé par défaut (champ caché), écrasé si un
+                // fichier est téléversé depuis l'ordinateur (stocké dans /uploads).
+                $courant = trim((string) ($_POST[$nom] ?? ''));
+                $fichier = $_FILES[$nom . '_upload'] ?? null;
+                if ($fichier && !empty($fichier['name']) && is_uploaded_file($fichier['tmp_name'])) {
+                    $chemin = crud_televerser_image($fichier);
+                    if ($chemin !== null) {
+                        $courant = $chemin;
+                    } else {
+                        flash('Image ignorée : format non autorisé (jpg, png, webp, gif, svg).', 'erreur');
+                    }
+                }
+                $valeurs[$nom] = ($courant === '') ? null : $courant;
+                continue;
+            }
             $brut = $_POST[$nom] ?? null;
             if ($type === 'bool') {
                 $valeurs[$nom] = $brut ? 1 : 0;
@@ -136,7 +152,7 @@ function crud_page(array $cfg): void
     if ($mode !== null) {
         layout_admin_debut(($ligne ? 'Modifier' : 'Ajouter') . ' — ' . $cfg['singulier'], $cfg['menu']);
         echo '<a class="back-link" href="' . h($urlSelf) . '">← Retour à la liste</a>';
-        echo '<div class="admin-panel"><form method="post" class="crud-form">';
+        echo '<div class="admin-panel"><form method="post" class="crud-form" enctype="multipart/form-data">';
         echo csrf_input();
         echo '<input type="hidden" name="id" value="' . (int) ($ligne['id'] ?? 0) . '">';
 
@@ -171,6 +187,16 @@ function crud_page(array $cfg): void
                         echo '<option value="' . h($ov) . '"' . $sel . '>' . h($ol) . '</option>';
                     }
                     echo '</select>';
+                    break;
+                case 'image':
+                    // Aperçu de l'image actuelle + téléversement depuis l'ordinateur.
+                    if ($val) {
+                        $src = base_url() . '/' . ltrim((string) $val, '/');
+                        echo '<img src="' . h($src) . '" alt="" class="crud-thumb">';
+                    }
+                    echo '<input type="file" name="' . h($nom) . '_upload" accept="image/*">';
+                    // Chemin actuel conservé si aucun nouveau fichier n'est envoyé.
+                    echo '<input type="hidden" name="' . h($nom) . '" value="' . h($val) . '">';
                     break;
                 default:
                     echo '<input type="text" name="' . h($nom) . '" value="' . h($val) . '"' . $requis . '>';
@@ -241,4 +267,28 @@ function crud_page(array $cfg): void
     }
     echo '</div>';
     layout_admin_fin();
+}
+
+/**
+ * Téléverse une image dans le dossier /uploads et renvoie son chemin relatif
+ * (ex : "uploads/1737-plan.jpg"), ou null si le format n'est pas autorisé.
+ */
+function crud_televerser_image(array $fichier): ?string
+{
+    $extensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'];
+    $ext = strtolower(pathinfo($fichier['name'], PATHINFO_EXTENSION));
+    if (!in_array($ext, $extensions, true)) {
+        return null;
+    }
+    $dossier = config('dossier_uploads') ?: 'uploads';
+    $reel = dirname(__DIR__) . '/' . $dossier;
+    if (!is_dir($reel)) {
+        @mkdir($reel, 0775, true);
+    }
+    $base = preg_replace('/[^A-Za-z0-9._-]/', '_', pathinfo($fichier['name'], PATHINFO_FILENAME));
+    $nomFichier = time() . '-' . substr($base, 0, 60) . '.' . $ext;
+    if (!move_uploaded_file($fichier['tmp_name'], $reel . '/' . $nomFichier)) {
+        return null;
+    }
+    return $dossier . '/' . $nomFichier;
 }

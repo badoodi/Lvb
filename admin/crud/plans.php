@@ -80,7 +80,7 @@ crud_page([
     'champs' => [
         ['nom' => 'nom', 'label' => 'Nom', 'type' => 'text', 'requis' => true],
         ['nom' => 'description', 'label' => 'Description', 'type' => 'textarea'],
-        ['nom' => 'image', 'label' => 'Image (chemin)', 'type' => 'text', 'aide' => 'Ex : uploads/villa-baobab.jpg'],
+        ['nom' => 'image', 'label' => 'Image du plan', 'type' => 'image', 'aide' => 'Téléversez une image depuis votre ordinateur (jpg, png, webp…).'],
         ['nom' => 'dimensions', 'label' => 'Dimensions', 'type' => 'text', 'aide' => 'Ex : 15m x 12m'],
         ['nom' => 'surface_m2', 'label' => 'Surface (m²)', 'type' => 'number'],
         ['nom' => 'nombre_chambres', 'label' => 'Nombre de chambres', 'type' => 'number', 'step' => '1'],

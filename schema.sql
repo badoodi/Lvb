@@ -110,6 +110,8 @@ CREATE TABLE pieces_plan (
     plan_id         INT UNSIGNED NOT NULL,
     nom             VARCHAR(100) NOT NULL,          -- ex : "Chambre 1", "Cuisine", "Toute la villa"
     type_piece      ENUM('chambre','cuisine','salon','salle_de_bain','globale','autre') NOT NULL DEFAULT 'autre',
+    etage           VARCHAR(80)  NULL,              -- ex : "Rez-de-chaussée", "Étage 1" (regroupement dans l'accordéon client)
+    description     VARCHAR(255) NULL,              -- ex : "La chambre près du salon" — pour situer précisément la pièce
     ordre_affichage INT NOT NULL DEFAULT 0,
     CONSTRAINT fk_piece_plan FOREIGN KEY (plan_id) REFERENCES plans_villa(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -353,14 +355,14 @@ INSERT INTO plans_villa (id, nom, description, dimensions, surface_m2, nombre_ch
 INSERT INTO plan_formule (plan_id, formule_id, prix_base) VALUES
 (1, 1, 0), (1, 2, 0), (1, 3, 0);
 
-INSERT INTO pieces_plan (plan_id, nom, type_piece, ordre_affichage) VALUES
-(1, 'Toute la villa', 'globale',       0),
-(1, 'Chambre 1',      'chambre',       1),
-(1, 'Chambre 2',      'chambre',       2),
-(1, 'Chambre 3',      'chambre',       3),
-(1, 'Cuisine',        'cuisine',       4),
-(1, 'Salon',          'salon',         5),
-(1, 'Salle de bain',  'salle_de_bain', 6);
+INSERT INTO pieces_plan (plan_id, nom, type_piece, etage, description, ordre_affichage) VALUES
+(1, 'Toute la villa', 'globale',       NULL,               'Choix appliqué à l''ensemble de la villa.',        0),
+(1, 'Salon',          'salon',         'Rez-de-chaussée',  'Le grand salon à l''entrée de la villa.',          1),
+(1, 'Cuisine',        'cuisine',       'Rez-de-chaussée',  'La cuisine ouverte, attenante au salon.',          2),
+(1, 'Chambre 1',      'chambre',       'Rez-de-chaussée',  'La chambre du rez-de-chaussée, près du salon.',    3),
+(1, 'Salle de bain',  'salle_de_bain', 'Rez-de-chaussée',  'La salle de bain du rez-de-chaussée.',             4),
+(1, 'Chambre 2',      'chambre',       'Étage 1',          'La chambre à l''étage, côté jardin.',              5),
+(1, 'Chambre 3',      'chambre',       'Étage 1',          'La chambre à l''étage, côté rue.',                 6);
 
 INSERT INTO documents_plan (plan_id, type_document, nom, fichier) VALUES
 (1, 'plan_electrique', 'Plan électrique — Villa Baobab', 'documents/villa-baobab-electrique.pdf'),

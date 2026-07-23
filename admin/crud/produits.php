@@ -53,7 +53,7 @@ crud_page([
         ['nom' => 'reference', 'label' => 'Référence (SKU)', 'type' => 'text', 'requis' => true, 'aide' => 'Code produit unique, distinct du numéro de position.'],
         ['nom' => 'dimensions', 'label' => 'Dimensions', 'type' => 'text'],
         ['nom' => 'disponible', 'label' => 'Disponible', 'type' => 'bool', 'defaut' => 1],
-        ['nom' => 'image', 'label' => 'Image (chemin)', 'type' => 'text', 'aide' => 'Chemin relatif, ex : uploads/produit.jpg'],
+        ['nom' => 'image', 'label' => 'Image du produit', 'type' => 'image', 'aide' => 'Téléversez une image depuis votre ordinateur (jpg, png, webp…).'],
     ],
     // Numéro de position auto-assigné à la création (MAX+1), distinct de la référence.
     'avant_ecrire' => function (array &$valeurs, bool $creation) {

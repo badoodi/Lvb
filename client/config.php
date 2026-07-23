@@ -245,81 +245,144 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
 
                     <?php foreach ($cats as $cat):
                         $opts = options_categorie($prodStmt, (int) $cat['id'], $niveauChoisi);
-                        $pieces = pieces_de_categorie($cat, $piecesReelles, $pieceGlobale);
+                        $catId = (int) $cat['id'];
+                        $estParPiece = (int) $cat['par_piece'] === 1;
+                        // Produits sélectionnables : proposés (formule) + upgrades (formule supérieure).
+                        $produitsChoix = [];
+                        foreach ($opts['proposes'] as $p) {
+                            $produitsChoix[] = ['prod' => $p, 'supp' => 0.0, 'upgrade' => false];
+                        }
+                        foreach ($opts['upgrades'] as $p) {
+                            $produitsChoix[] = ['prod' => $p, 'supp' => max(0.0, (float) $p['prix'] - $opts['ref']), 'upgrade' => true];
+                        }
+                        $selCat = $selections[$catId] ?? [];
                         ?>
                         <div class="category">
                             <div class="category-head">
                                 <span class="category-tag">Cat.</span>
                                 <h2><?= h($cat['nom']) ?></h2>
-                                <span class="category-sub">
-                                    <?= ((int) $cat['par_piece'] === 1) ? 'choix par pièce' : 'toute la villa' ?>
-                                </span>
+                                <span class="category-sub"><?= $estParPiece ? 'choix par pièce' : 'toute la villa' ?></span>
                             </div>
 
-                            <?php if (!$opts['proposes'] && !$opts['upgrades']): ?>
+                            <?php if (!$produitsChoix): ?>
                                 <p class="vide">Aucun produit disponible pour cette formule.</p>
-                            <?php else: ?>
-                                <?php foreach ($pieces as $piece):
-                                    $groupe = 'sel[' . (int) $cat['id'] . '][' . (int) $piece['id'] . ']';
-                                    $selPiece = $selections[(int) $cat['id']][(int) $piece['id']] ?? 0;
-                                    ?>
-                                    <div class="piece-bloc">
-                                        <?php if ((int) $cat['par_piece'] === 1): ?>
-                                            <div class="piece-titre"><?= h($piece['nom']) ?></div>
-                                        <?php endif; ?>
 
-                                        <div class="option-list">
-                                            <?php $i = 1; foreach ($opts['proposes'] as $prod): ?>
-                                                <label class="option-row">
-                                                    <span class="option-index"><?= str_pad((string) $i++, 2, '0', STR_PAD_LEFT) ?></span>
-                                                    <span class="option-radio">
-                                                        <input type="radio" name="<?= h($groupe) ?>"
-                                                               value="<?= (int) $prod['id'] ?>"
-                                                               <?= $selPiece === (int) $prod['id'] ? 'checked' : '' ?>
-                                                               <?= $modifiable ? '' : 'disabled' ?>>
-                                                    </span>
-                                                    <span class="option-label">
-                                                        <?= h($prod['nom']) ?>
-                                                        <span class="option-note">réf. <?= h($prod['reference']) ?> · formule <?= h($prod['formule_nom']) ?></span>
-                                                    </span>
+                            <?php elseif ($estParPiece): ?>
+                                <?php
+                                // Regroupement des pièces réelles par étage (ordre conservé).
+                                $etages = [];
+                                foreach ($piecesReelles as $pc) {
+                                    $et = ($pc['etage'] !== null && $pc['etage'] !== '') ? $pc['etage'] : 'Autres pièces';
+                                    $etages[$et][] = $pc;
+                                }
+                                ?>
+                                <?php if ($modifiable): ?>
+                                    <?php // Valeurs canoniques lues par le serveur : un produit par pièce. ?>
+                                    <?php foreach ($piecesReelles as $pc): ?>
+                                        <input type="hidden" class="sel-hidden" data-cat="<?= $catId ?>" data-piece="<?= (int) $pc['id'] ?>"
+                                               name="sel[<?= $catId ?>][<?= (int) $pc['id'] ?>]" value="<?= (int) ($selCat[(int) $pc['id']] ?? 0) ?>">
+                                    <?php endforeach; ?>
+
+                                    <div class="option-list piece-first" data-cat="<?= $catId ?>">
+                                        <?php foreach ($produitsChoix as $ch): $prod = $ch['prod']; $pid = (int) $prod['id']; ?>
+                                            <div class="option-row option-assign">
+                                                <span class="option-label"><?= h($prod['nom']) ?>
+                                                    <span class="option-note">réf. <?= h($prod['reference']) ?> · formule <?= h($prod['formule_nom']) ?></span>
+                                                </span>
+                                                <?php if ($ch['upgrade']): ?>
+                                                    <span class="option-supp">+ <?= euros($ch['supp']) ?></span>
+                                                <?php else: ?>
                                                     <span class="option-level"><?= euros($prod['prix']) ?></span>
-                                                </label>
-                                            <?php endforeach; ?>
-                                        </div>
+                                                <?php endif; ?>
+                                                <button type="button" class="choisir-piece" data-cat="<?= $catId ?>" data-product="<?= $pid ?>">
+                                                    Choisir une pièce <span class="piece-count"></span>
+                                                </button>
 
-                                        <?php if ($opts['upgrades']): ?>
-                                            <details class="upgrade" <?= ($selPiece && !in_array($selPiece, array_map(fn($p) => (int) $p['id'], $opts['proposes']), true)) ? 'open' : '' ?>>
-                                                <summary>Voir d'autres produits (formule supérieure)</summary>
-                                                <div class="option-list upgrade-list">
-                                                    <?php foreach ($opts['upgrades'] as $prod):
-                                                        $supp = max(0.0, (float) $prod['prix'] - $opts['ref']); ?>
-                                                        <label class="option-row">
-                                                            <span class="option-radio">
-                                                                <input type="radio" name="<?= h($groupe) ?>"
-                                                                       value="<?= (int) $prod['id'] ?>"
-                                                                       <?= $selPiece === (int) $prod['id'] ? 'checked' : '' ?>
-                                                                       <?= $modifiable ? '' : 'disabled' ?>>
-                                                            </span>
-                                                            <span class="option-label">
-                                                                <?= h($prod['nom']) ?>
-                                                                <span class="option-note">réf. <?= h($prod['reference']) ?> · formule <?= h($prod['formule_nom']) ?></span>
-                                                            </span>
-                                                            <span class="option-supp">+ <?= euros($supp) ?></span>
-                                                        </label>
-                                                    <?php endforeach; ?>
+                                                <div class="piece-menu" hidden>
+                                                    <div class="piece-menu-head">Affecter « <?= h($prod['nom']) ?> » à&nbsp;:</div>
+                                                    <div class="etage-accordion">
+                                                        <?php foreach ($etages as $etNom => $piecesEt): ?>
+                                                            <div class="etage-item">
+                                                                <button type="button" class="etage-head"><?= h($etNom) ?><span class="chev">＋</span></button>
+                                                                <div class="etage-pieces" hidden>
+                                                                    <?php foreach ($piecesEt as $pc): $pcid = (int) $pc['id']; ?>
+                                                                        <label class="piece-check">
+                                                                            <input type="checkbox" class="assign-check"
+                                                                                   data-cat="<?= $catId ?>" data-piece="<?= $pcid ?>" value="<?= $pid ?>"
+                                                                                   <?= ((int) ($selCat[$pcid] ?? 0) === $pid) ? 'checked' : '' ?>>
+                                                                            <span class="piece-check-txt"><?= h($pc['nom']) ?>
+                                                                                <?php if (!empty($pc['description'])): ?><small><?= h($pc['description']) ?></small><?php endif; ?>
+                                                                            </span>
+                                                                        </label>
+                                                                    <?php endforeach; ?>
+                                                                </div>
+                                                            </div>
+                                                        <?php endforeach; ?>
+                                                    </div>
                                                 </div>
-                                            </details>
-                                        <?php endif; ?>
-
-                                        <?php if ($modifiable): ?>
-                                            <label class="option-vider">
-                                                <input type="radio" name="<?= h($groupe) ?>" value="0"
-                                                       <?= $selPiece === 0 ? 'checked' : '' ?>>
-                                                Ne pas choisir
-                                            </label>
-                                        <?php endif; ?>
+                                            </div>
+                                        <?php endforeach; ?>
                                     </div>
-                                <?php endforeach; ?>
+
+                                <?php else: /* lecture seule : récap pièce -> produit */ ?>
+                                    <ul class="assign-recap">
+                                        <?php foreach ($piecesReelles as $pc):
+                                            $pcid = (int) $pc['id']; $chosen = (int) ($selCat[$pcid] ?? 0);
+                                            $nomProd = '— non choisi —';
+                                            foreach ($produitsChoix as $ch) { if ((int) $ch['prod']['id'] === $chosen) { $nomProd = $ch['prod']['nom']; } }
+                                            ?>
+                                            <li><span><?= h($pc['nom']) ?></span><span class="recap-count"><?= h($nomProd) ?></span></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php endif; ?>
+
+                            <?php else:
+                                // Catégorie « toute la villa » : un seul choix (pièce globale).
+                                $pid = $pieceGlobale ? (int) $pieceGlobale['id'] : 0;
+                                $groupe = 'sel[' . $catId . '][' . $pid . ']';
+                                $selPiece = $selections[$catId][$pid] ?? 0;
+                                ?>
+                                <div class="piece-bloc">
+                                    <div class="option-list">
+                                        <?php foreach ($opts['proposes'] as $prod): ?>
+                                            <label class="option-row">
+                                                <span class="option-radio">
+                                                    <input type="radio" name="<?= h($groupe) ?>" value="<?= (int) $prod['id'] ?>"
+                                                           <?= $selPiece === (int) $prod['id'] ? 'checked' : '' ?> <?= $modifiable ? '' : 'disabled' ?>>
+                                                </span>
+                                                <span class="option-label"><?= h($prod['nom']) ?>
+                                                    <span class="option-note">réf. <?= h($prod['reference']) ?> · formule <?= h($prod['formule_nom']) ?></span>
+                                                </span>
+                                                <span class="option-level"><?= euros($prod['prix']) ?></span>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    <?php if ($opts['upgrades']): ?>
+                                        <details class="upgrade" <?= ($selPiece && !in_array($selPiece, array_map(fn($p) => (int) $p['id'], $opts['proposes']), true)) ? 'open' : '' ?>>
+                                            <summary>Voir d'autres produits (formule supérieure)</summary>
+                                            <div class="option-list upgrade-list">
+                                                <?php foreach ($opts['upgrades'] as $prod): $supp = max(0.0, (float) $prod['prix'] - $opts['ref']); ?>
+                                                    <label class="option-row">
+                                                        <span class="option-radio">
+                                                            <input type="radio" name="<?= h($groupe) ?>" value="<?= (int) $prod['id'] ?>"
+                                                                   <?= $selPiece === (int) $prod['id'] ? 'checked' : '' ?> <?= $modifiable ? '' : 'disabled' ?>>
+                                                        </span>
+                                                        <span class="option-label"><?= h($prod['nom']) ?>
+                                                            <span class="option-note">réf. <?= h($prod['reference']) ?> · formule <?= h($prod['formule_nom']) ?></span>
+                                                        </span>
+                                                        <span class="option-supp">+ <?= euros($supp) ?></span>
+                                                    </label>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </details>
+                                    <?php endif; ?>
+                                    <?php if ($modifiable): ?>
+                                        <label class="option-vider">
+                                            <input type="radio" name="<?= h($groupe) ?>" value="0" <?= $selPiece === 0 ? 'checked' : '' ?>>
+                                            Ne pas choisir
+                                        </label>
+                                    <?php endif; ?>
+                                </div>
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
@@ -351,4 +414,72 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
         </aside>
     </form>
 </div>
+
+<script>
+(function () {
+    // Compte le nombre de pièces affectées à chaque produit d'une catégorie.
+    function refresh(cat) {
+        var c = {};
+        document.querySelectorAll('.sel-hidden[data-cat="' + cat + '"]').forEach(function (h) {
+            if (h.value && h.value !== '0') { c[h.value] = (c[h.value] || 0) + 1; }
+        });
+        document.querySelectorAll('.choisir-piece[data-cat="' + cat + '"]').forEach(function (btn) {
+            var n = c[btn.getAttribute('data-product')] || 0;
+            var span = btn.querySelector('.piece-count');
+            span.textContent = n ? ('· ' + n + ' pièce' + (n > 1 ? 's' : '')) : '';
+            btn.classList.toggle('actif', n > 0);
+        });
+    }
+    function closeMenus() {
+        document.querySelectorAll('.piece-menu').forEach(function (m) { m.hidden = true; });
+    }
+    // Ouverture / fermeture du menu flottant "Choisir une pièce".
+    document.querySelectorAll('.choisir-piece').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var menu = btn.parentElement.querySelector('.piece-menu');
+            var open = menu.hidden;
+            closeMenus();
+            menu.hidden = !open;
+        });
+    });
+    // Accordéon des étages : un seul étage ouvert à la fois.
+    document.querySelectorAll('.etage-head').forEach(function (head) {
+        head.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var body = head.nextElementSibling;
+            var acc = head.closest('.etage-accordion');
+            var open = body.hidden;
+            acc.querySelectorAll('.etage-pieces').forEach(function (b) { b.hidden = true; });
+            acc.querySelectorAll('.etage-head').forEach(function (h) { h.classList.remove('ouvert'); });
+            if (open) { body.hidden = false; head.classList.add('ouvert'); }
+        });
+    });
+    // Affectation d'un produit à une pièce (une seule affectation par pièce).
+    document.querySelectorAll('.assign-check').forEach(function (chk) {
+        chk.addEventListener('change', function () {
+            var cat = chk.getAttribute('data-cat'), piece = chk.getAttribute('data-piece'), prod = chk.value;
+            var hidden = document.querySelector('.sel-hidden[data-cat="' + cat + '"][data-piece="' + piece + '"]');
+            if (chk.checked) {
+                document.querySelectorAll('.assign-check[data-cat="' + cat + '"][data-piece="' + piece + '"]').forEach(function (o) {
+                    if (o !== chk) { o.checked = false; }
+                });
+                hidden.value = prod;
+            } else if (hidden.value === prod) {
+                hidden.value = '0';
+            }
+            refresh(cat);
+        });
+    });
+    // Clic à l'extérieur : on referme les menus.
+    document.querySelectorAll('.piece-menu').forEach(function (m) {
+        m.addEventListener('click', function (e) { e.stopPropagation(); });
+    });
+    document.addEventListener('click', closeMenus);
+    // Compteurs initiaux.
+    document.querySelectorAll('.option-list.piece-first').forEach(function (l) {
+        refresh(l.getAttribute('data-cat'));
+    });
+})();
+</script>
 <?php layout_fin();

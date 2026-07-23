@@ -55,6 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int) ($_POST['id'] ?? 0);
     $nom = trim($_POST['nom'] ?? '');
     $type = $_POST['type_piece'] ?? 'autre';
+    $etage = trim($_POST['etage'] ?? '');
+    $description = trim($_POST['description'] ?? '');
     $ordre = (int) ($_POST['ordre_affichage'] ?? 0);
     if (!isset($typesPiece[$type])) {
         $type = 'autre';
@@ -62,12 +64,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($nom === '') {
         flash('Le nom de la pièce est obligatoire.', 'erreur');
     } elseif ($id) {
-        db()->prepare('UPDATE pieces_plan SET nom = ?, type_piece = ?, ordre_affichage = ? WHERE id = ? AND plan_id = ?')
-            ->execute([$nom, $type, $ordre, $id, $planId]);
+        db()->prepare('UPDATE pieces_plan SET nom = ?, type_piece = ?, etage = ?, description = ?, ordre_affichage = ? WHERE id = ? AND plan_id = ?')
+            ->execute([$nom, $type, ($etage ?: null), ($description ?: null), $ordre, $id, $planId]);
         flash('Pièce modifiée.');
     } else {
-        db()->prepare('INSERT INTO pieces_plan (plan_id, nom, type_piece, ordre_affichage) VALUES (?, ?, ?, ?)')
-            ->execute([$planId, $nom, $type, $ordre]);
+        db()->prepare('INSERT INTO pieces_plan (plan_id, nom, type_piece, etage, description, ordre_affichage) VALUES (?, ?, ?, ?, ?, ?)')
+            ->execute([$planId, $nom, $type, ($etage ?: null), ($description ?: null), $ordre]);
         flash('Pièce ajoutée.');
     }
     redirect($base . '/admin/crud/pieces.php?plan=' . $planId);
@@ -97,12 +99,13 @@ layout_admin_debut('Pièces — ' . $plan['nom'], 'plans');
             <p class="vide">Aucune pièce.</p>
         <?php else: ?>
         <table class="data-table">
-            <thead><tr><th>Ordre</th><th>Nom</th><th>Type</th><th></th></tr></thead>
+            <thead><tr><th>Ordre</th><th>Nom</th><th>Étage</th><th>Type</th><th></th></tr></thead>
             <tbody>
                 <?php foreach ($pieces as $p): ?>
                     <tr>
                         <td><?= (int) $p['ordre_affichage'] ?></td>
-                        <td><?= h($p['nom']) ?></td>
+                        <td><?= h($p['nom']) ?><?php if (!empty($p['description'])): ?><br><small style="color:var(--ink-soft)"><?= h($p['description']) ?></small><?php endif; ?></td>
+                        <td><?= h($p['etage'] ?? '—') ?></td>
                         <td><?= h($typesPiece[$p['type_piece']] ?? $p['type_piece']) ?></td>
                         <td class="row-actions">
                             <a class="btn-line" href="?plan=<?= $planId ?>&edit=<?= (int) $p['id'] ?>">Modifier</a>
@@ -133,6 +136,10 @@ layout_admin_debut('Pièces — ' . $plan['nom'], 'plans');
                         <option value="<?= h($v) ?>" <?= ($edit['type_piece'] ?? '') === $v ? 'selected' : '' ?>><?= h($l) ?></option>
                     <?php endforeach; ?>
                 </select></label>
+            <label class="form-field"><span>Étage</span>
+                <input type="text" name="etage" value="<?= h($edit['etage'] ?? '') ?>" placeholder="Rez-de-chaussée, Étage 1…"></label>
+            <label class="form-field"><span>Description (pour situer la pièce)</span>
+                <textarea name="description" rows="2" placeholder="Ex : la chambre près du salon"><?= h($edit['description'] ?? '') ?></textarea></label>
             <label class="form-field"><span>Ordre d'affichage</span>
                 <input type="number" step="1" name="ordre_affichage" value="<?= h($edit['ordre_affichage'] ?? 0) ?>"></label>
             <div class="crud-form-actions">
