@@ -8,6 +8,17 @@
 require_once __DIR__ . '/db.php';
 
 if (session_status() === PHP_SESSION_NONE) {
+    // Cookie de session forcé sur le chemin « / » pour qu'il soit UNIQUE et
+    // partagé entre la racine (index.php), /client et /admin. Sans ça, certains
+    // hébergements créent un cookie par dossier : la racine croit l'utilisateur
+    // connecté et redirige vers /client, qui ne voit pas la session et renvoie
+    // vers index.php?err=client -> boucle de redirections.
+    session_set_cookie_params([
+        'path'     => '/',
+        'httponly' => true,
+        'samesite' => 'Lax',
+        'secure'   => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+    ]);
     session_start();
 }
 
