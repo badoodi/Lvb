@@ -136,8 +136,22 @@ layout_admin_debut('Pièces — ' . $plan['nom'], 'plans');
                         <option value="<?= h($v) ?>" <?= ($edit['type_piece'] ?? '') === $v ? 'selected' : '' ?>><?= h($l) ?></option>
                     <?php endforeach; ?>
                 </select></label>
+            <?php
+            $etagesDispo = ['Rez-de-chaussée'];
+            for ($n = 1; $n <= 10; $n++) { $etagesDispo[] = 'Étage ' . $n; }
+            $etageCourant = $edit['etage'] ?? '';
+            // Conserver une valeur existante hors liste.
+            if ($etageCourant !== '' && !in_array($etageCourant, $etagesDispo, true)) {
+                array_unshift($etagesDispo, $etageCourant);
+            }
+            ?>
             <label class="form-field"><span>Étage</span>
-                <input type="text" name="etage" value="<?= h($edit['etage'] ?? '') ?>" placeholder="Rez-de-chaussée, Étage 1…"></label>
+                <select name="etage">
+                    <option value="">—</option>
+                    <?php foreach ($etagesDispo as $et): ?>
+                        <option value="<?= h($et) ?>" <?= $etageCourant === $et ? 'selected' : '' ?>><?= h($et) ?></option>
+                    <?php endforeach; ?>
+                </select></label>
             <label class="form-field"><span>Description (pour situer la pièce)</span>
                 <textarea name="description" rows="2" placeholder="Ex : la chambre près du salon"><?= h($edit['description'] ?? '') ?></textarea></label>
             <label class="form-field"><span>Ordre d'affichage</span>

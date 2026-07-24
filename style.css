@@ -602,3 +602,128 @@ img{ max-width:100%; display:block; }
 @media (max-width: 520px){
   .piece-menu{ position:fixed; left:16px; right:16px; width:auto; top:auto; bottom:16px; }
 }
+
+/* =========================================================
+   AJOUTS v3 — logo en-tête, formules luxe, bandeau pleine
+   largeur, sections de choix encadrées, dropzone image
+   ========================================================= */
+
+:root{
+  --grad-1: linear-gradient(155deg,#3E63C9 0%,#2740A8 55%,#6E93E6 125%);
+  --grad-2: linear-gradient(155deg,#1E2F86 0%,#2C46B8 60%,#4E74D8 125%);
+  --grad-3: linear-gradient(155deg,#0B1436 0%,#182a63 55%,#26407f 125%);
+  --gold:   #C9A24B;
+}
+
+/* ---------- logo client dans l'en-tête ---------- */
+.brand-lockup{ display:flex; align-items:center; gap:13px; }
+.brand-logo{
+  width:46px; height:46px; border-radius:13px; flex-shrink:0;
+  background-color:#0E1A6E; background-repeat:no-repeat;
+  background-size:158%; background-position:50% 36%;
+  box-shadow:var(--shadow-sm);
+}
+.admin-brand .brand-lockup .brand{ font-size:1.15rem; }
+.admin-brand .brand-logo{ width:42px; height:42px; }
+
+/* ---------- FORMULES LUXE (accueil / choix formule) ---------- */
+.formule-grid{ grid-template-columns:repeat(3,1fr); gap:26px; }
+.formule-card{
+  position:relative; overflow:hidden; border:none; padding:0;
+  min-height:460px; border-radius:24px; box-shadow:var(--shadow);
+  display:flex; color:#fff;
+}
+.formule-card.niveau-1{ background:var(--grad-1); }
+.formule-card.niveau-2{ background:var(--grad-2); }
+.formule-card.niveau-3{ background:var(--grad-3); }
+.formule-sheen{
+  position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(120% 80% at 82% 0%, rgba(255,255,255,.30), transparent 60%);
+}
+.formule-overlay{
+  position:relative; z-index:2; margin-top:auto; width:100%; padding:36px 30px 30px;
+  background:linear-gradient(0deg, rgba(6,12,32,.66) 0%, rgba(6,12,32,.16) 58%, transparent 100%);
+}
+.formule-badge{
+  display:inline-flex; align-items:center; gap:7px; font-size:.7rem; font-weight:600;
+  letter-spacing:.04em; text-transform:uppercase; color:#fff;
+  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.30);
+  padding:5px 13px; border-radius:999px; margin-bottom:18px;
+}
+.formule-badge-ic{
+  display:inline-grid; place-items:center; width:16px; height:16px; border-radius:50%;
+  background:#fff; color:var(--blueprint); font-size:.62rem; font-weight:700;
+}
+.formule-card .formule-name{ font-family:var(--font-display); font-weight:600; font-size:2rem; margin-bottom:8px; color:#fff; }
+.formule-card .formule-desc{ color:rgba(255,255,255,.86); font-size:.95rem; margin-bottom:24px; max-width:34ch; }
+.formule-foot{ display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.formule-prix span{ display:block; font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; color:rgba(255,255,255,.72); }
+.formule-prix strong{ font-family:var(--font-display); font-weight:600; font-size:1.3rem; color:#fff; }
+.formule-card .btn-choisir{
+  background:#fff; color:var(--blueprint); border:none; border-radius:999px;
+  padding:13px 24px; font-weight:600; font-size:.92rem; display:inline-flex; align-items:center; gap:9px;
+  cursor:pointer; transition:transform .15s, box-shadow .15s; box-shadow:0 8px 20px rgba(0,0,0,.20);
+}
+.formule-card .btn-choisir span{ font-size:1.15rem; line-height:1; }
+.formule-card .btn-choisir:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(0,0,0,.28); background:#fff; color:var(--blueprint); }
+
+/* Signature (niveau 3) : accent laiton/or */
+.formule-card.niveau-3{ border:1px solid rgba(201,162,75,.45); }
+.formule-card.niveau-3 .formule-badge{ border-color:rgba(201,162,75,.6); }
+.formule-card.niveau-3 .formule-badge-ic{ color:#1a2a63; }
+.formule-card.niveau-3 .formule-prix strong{ color:#F0D9A6; }
+.formule-card.niveau-3 .btn-choisir{ background:var(--gold); color:#1a1204; box-shadow:0 8px 22px rgba(201,162,75,.45); }
+.formule-card.niveau-3 .btn-choisir:hover{ background:#d9b566; color:#1a1204; }
+
+/* ---------- BANDEAU config : pleine largeur, même style ---------- */
+.banner{
+  position:relative; margin:0; border-radius:0; min-height:210px; overflow:hidden;
+  display:flex; align-items:flex-end; color:#fff; border:none;
+}
+.banner.niveau-1{ background:var(--grad-1); }
+.banner.niveau-2{ background:var(--grad-2); }
+.banner.niveau-3{ background:var(--grad-3); }
+.banner-sheen{ position:absolute; inset:0; background:radial-gradient(120% 90% at 85% 0%, rgba(255,255,255,.26), transparent 60%); }
+.banner-overlay{
+  position:relative; z-index:2; width:100%; max-width:1180px; margin:0 auto;
+  padding:46px 32px 36px;
+  background:none;
+}
+.banner-overlay h1{ font-family:var(--font-display); font-weight:600; color:#fff; font-size:clamp(1.7rem,3vw,2.5rem); text-shadow:0 2px 18px rgba(6,12,32,.4); }
+.banner-overlay h1 em{ font-style:normal; color:#B9CDF3; }
+.banner.niveau-3 .banner-overlay h1 em{ color:#F0D9A6; }
+.banner .formule-badge{ margin-bottom:14px; }
+
+/* ---------- sections de choix ENCADRÉES (config client) ---------- */
+.grande-cat{ background:transparent; border:none; box-shadow:none; padding:0; margin-bottom:34px; }
+.grande-cat .category{
+  border:1px solid var(--line); border-radius:var(--radius); background:#fff;
+  padding:22px 22px 12px; margin-bottom:18px; box-shadow:var(--shadow-sm);
+}
+.grande-cat .category + .category{ border-top:1px solid var(--line); padding-top:22px; } /* neutralise l'ancienne règle */
+.grande-cat .category:last-child{ margin-bottom:0; }
+
+/* ---------- DROPZONE image (admin) ---------- */
+.image-dropzone{
+  position:relative; min-height:200px; border:2px dashed var(--line); border-radius:var(--radius);
+  background-color:#F5F7FD; background-position:center; background-size:cover; background-repeat:no-repeat;
+  display:flex; align-items:center; justify-content:center; overflow:hidden; transition:border-color .15s, background-color .15s;
+}
+.image-dropzone.drag{ border-color:var(--blueprint); background-color:var(--blueprint-soft); }
+.image-input{ position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.image-hint{
+  display:inline-flex; align-items:center; gap:10px; color:var(--ink-soft); font-size:.9rem; font-weight:500;
+  background:rgba(255,255,255,.9); padding:10px 18px; border-radius:999px; pointer-events:none;
+}
+.image-dropzone.has-image .image-hint{ box-shadow:0 6px 18px rgba(0,0,0,.20); }
+.image-hint-ic{ display:inline-grid; place-items:center; width:22px; height:22px; border-radius:50%; background:var(--blueprint); color:#fff; font-weight:700; font-size:.9rem; }
+
+/* ---------- fiche détail client (admin) ---------- */
+.fiche-table{ width:100%; border-collapse:collapse; font-size:.92rem; }
+.fiche-table th{ text-align:left; color:var(--ink-soft); font-weight:500; padding:9px 12px 9px 0; width:180px; vertical-align:top; }
+.fiche-table td{ padding:9px 0; }
+.config-detail{ border:1px solid var(--line); border-radius:var(--radius); padding:20px; margin-bottom:18px; }
+.config-detail-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.config-detail-head h3{ font-family:var(--font-display); font-weight:600; font-size:1.2rem; }
+.btn-voir{ border-color:var(--blueprint); color:var(--blueprint); }
+.btn-voir:hover{ background:var(--blueprint); color:#fff; }

@@ -215,10 +215,10 @@ foreach ($selections as $parPiece) {
 
 layout_client_debut('Configuration — ' . $config['plan_nom']);
 ?>
-<section class="banner">
-    <div class="banner-illustration blueprint-grid"></div>
-    <div class="banner-overlay">
-        <div class="banner-eyebrow"><?= h($config['plan_nom']) ?> · <?= h(ucfirst(str_replace('_', ' ', $config['statut']))) ?></div>
+<section class="banner niveau-<?= $niveauChoisi ?>">
+    <div class="banner-sheen"></div>
+    <div class="banner-overlay wrap">
+        <div class="formule-badge"><span class="formule-badge-ic">✓</span> <?= h($config['plan_nom']) ?> · <?= h(ucfirst(str_replace('_', ' ', $config['statut']))) ?></div>
         <h1>Vous avez choisi la formule <em><?= h($config['formule_nom']) ?></em></h1>
     </div>
 </section>

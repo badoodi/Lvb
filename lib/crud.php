@@ -86,13 +86,19 @@ function crud_page(array $cfg): void
                 // fichier est téléversé depuis l'ordinateur (stocké dans /uploads).
                 $courant = trim((string) ($_POST[$nom] ?? ''));
                 $fichier = $_FILES[$nom . '_upload'] ?? null;
-                if ($fichier && !empty($fichier['name']) && is_uploaded_file($fichier['tmp_name'])) {
-                    $chemin = crud_televerser_image($fichier);
+                $codeErreur = $fichier['error'] ?? UPLOAD_ERR_NO_FILE;
+                if ($fichier && $codeErreur === UPLOAD_ERR_OK && is_uploaded_file($fichier['tmp_name'])) {
+                    $erreurImg = '';
+                    $chemin = crud_televerser_image($fichier, $erreurImg);
                     if ($chemin !== null) {
                         $courant = $chemin;
                     } else {
-                        flash('Image ignorée : format non autorisé (jpg, png, webp, gif, svg).', 'erreur');
+                        flash($erreurImg, 'erreur');
                     }
+                } elseif ($codeErreur === UPLOAD_ERR_INI_SIZE || $codeErreur === UPLOAD_ERR_FORM_SIZE) {
+                    flash('Image trop volumineuse pour le serveur (limite upload_max_filesize / post_max_size).', 'erreur');
+                } elseif ($codeErreur !== UPLOAD_ERR_NO_FILE) {
+                    flash('Le téléversement de l\'image a échoué (code ' . (int) $codeErreur . ').', 'erreur');
                 }
                 $valeurs[$nom] = ($courant === '') ? null : $courant;
                 continue;
@@ -189,12 +195,15 @@ function crud_page(array $cfg): void
                     echo '</select>';
                     break;
                 case 'image':
-                    // Aperçu de l'image actuelle + téléversement depuis l'ordinateur.
-                    if ($val) {
-                        $src = base_url() . '/' . ltrim((string) $val, '/');
-                        echo '<img src="' . h($src) . '" alt="" class="crud-thumb">';
-                    }
-                    echo '<input type="file" name="' . h($nom) . '_upload" accept="image/*">';
+                    // Grand bloc « dropzone » : clic ou glisser-déposer, aperçu en fond.
+                    $bg = $val ? (base_url() . '/' . ltrim((string) $val, '/')) : '';
+                    $cls = 'image-dropzone' . ($bg ? ' has-image' : '');
+                    $style = $bg ? ' style="background-image:url(\'' . h($bg) . '\')"' : '';
+                    echo '<div class="' . $cls . '"' . $style . '>';
+                    echo '<input type="file" class="image-input" name="' . h($nom) . '_upload" accept="image/*">';
+                    echo '<div class="image-hint"><span class="image-hint-ic">＋</span>'
+                       . 'Cliquez ou glissez une image ici</div>';
+                    echo '</div>';
                     // Chemin actuel conservé si aucun nouveau fichier n'est envoyé.
                     echo '<input type="hidden" name="' . h($nom) . '" value="' . h($val) . '">';
                     break;
@@ -217,6 +226,30 @@ function crud_page(array $cfg): void
         echo '<div class="crud-form-actions">';
         echo '<button type="submit" class="btn-envoyer">' . ($ligne ? 'Enregistrer' : 'Ajouter') . '</button>';
         echo '</div></form></div>';
+        // Aperçu instantané + retour visuel du glisser-déposer sur les dropzones.
+        echo <<<'JS'
+<script>
+document.querySelectorAll('.image-dropzone').forEach(function (zone) {
+    var inp = zone.querySelector('.image-input');
+    inp.addEventListener('change', function () {
+        var f = inp.files && inp.files[0];
+        if (!f) { return; }
+        var r = new FileReader();
+        r.onload = function (e) {
+            zone.style.backgroundImage = "url('" + e.target.result + "')";
+            zone.classList.add('has-image');
+        };
+        r.readAsDataURL(f);
+    });
+    ['dragenter', 'dragover'].forEach(function (ev) {
+        zone.addEventListener(ev, function (e) { e.preventDefault(); zone.classList.add('drag'); });
+    });
+    ['dragleave', 'drop'].forEach(function (ev) {
+        zone.addEventListener(ev, function () { zone.classList.remove('drag'); });
+    });
+});
+</script>
+JS;
         layout_admin_fin();
         return;
     }
@@ -254,6 +287,9 @@ function crud_page(array $cfg): void
                 echo '<td>' . h($v) . '</td>';
             }
             echo '<td class="row-actions">';
+            if (!empty($cfg['lien_voir'])) {
+                echo '<a class="btn-line btn-voir" href="' . h(($cfg['lien_voir'])($l)) . '">Voir</a> ';
+            }
             echo '<a class="btn-line" href="' . h($urlSelf) . '?form=' . (int) $l['id'] . '">Modifier</a> ';
             echo '<form method="post" class="inline-form" onsubmit="return confirm(\'Supprimer cet élément ?\');">';
             echo csrf_input();
@@ -271,13 +307,15 @@ function crud_page(array $cfg): void
 
 /**
  * Téléverse une image dans le dossier /uploads et renvoie son chemin relatif
- * (ex : "uploads/1737-plan.jpg"), ou null si le format n'est pas autorisé.
+ * (ex : "uploads/1737-plan.jpg"), ou null en cas d'échec ($erreur est alors
+ * renseigné avec un message explicite).
  */
-function crud_televerser_image(array $fichier): ?string
+function crud_televerser_image(array $fichier, string &$erreur = ''): ?string
 {
     $extensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'];
     $ext = strtolower(pathinfo($fichier['name'], PATHINFO_EXTENSION));
     if (!in_array($ext, $extensions, true)) {
+        $erreur = 'Image ignorée : format non autorisé (jpg, png, webp, gif, svg).';
         return null;
     }
     $dossier = config('dossier_uploads') ?: 'uploads';
@@ -285,9 +323,15 @@ function crud_televerser_image(array $fichier): ?string
     if (!is_dir($reel)) {
         @mkdir($reel, 0775, true);
     }
+    if (!is_dir($reel) || !is_writable($reel)) {
+        $erreur = 'Le dossier « ' . $dossier . ' » est introuvable ou non inscriptible sur le serveur. '
+                . 'Créez-le à la racine du site et donnez-lui les droits d\'écriture (chmod 755 ou 775).';
+        return null;
+    }
     $base = preg_replace('/[^A-Za-z0-9._-]/', '_', pathinfo($fichier['name'], PATHINFO_FILENAME));
     $nomFichier = time() . '-' . substr($base, 0, 60) . '.' . $ext;
     if (!move_uploaded_file($fichier['tmp_name'], $reel . '/' . $nomFichier)) {
+        $erreur = 'Impossible d\'enregistrer l\'image dans « ' . $dossier . ' » (droits d\'écriture ?).';
         return null;
     }
     return $dossier . '/' . $nomFichier;

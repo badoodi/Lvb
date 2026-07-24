@@ -87,16 +87,24 @@ layout_client_debut('Choisir une formule');
         <?= csrf_input() ?>
         <?php foreach ($formules as $f):
             $cls = $classeNiveau[(int) $f['niveau']] ?? ''; ?>
-            <div class="formule-card <?= h($cls) ?>">
-                <div class="formule-code">// NIVEAU <?= (int) $f['niveau'] ?></div>
-                <div class="formule-name"><?= h($f['nom']) ?></div>
-                <p class="formule-desc"><?= h($f['description']) ?></p>
-                <ul class="formule-list">
-                    <li><span>Prix de base</span><span><?= euros($f['prix_base']) ?></span></li>
-                </ul>
-                <button type="submit" name="formule_id" value="<?= (int) $f['id'] ?>" class="btn-choisir">
-                    <span>Choisir <?= h($f['nom']) ?></span><span>→</span>
-                </button>
+            <div class="formule-card niveau-<?= (int) $f['niveau'] ?> <?= h($cls) ?>">
+                <div class="formule-sheen"></div>
+                <div class="formule-overlay">
+                    <div class="formule-badge">
+                        <span class="formule-badge-ic">✓</span> Formule niveau <?= (int) $f['niveau'] ?>
+                    </div>
+                    <div class="formule-name"><?= h($f['nom']) ?></div>
+                    <p class="formule-desc"><?= h($f['description']) ?></p>
+                    <div class="formule-foot">
+                        <div class="formule-prix">
+                            <span>À partir de</span>
+                            <strong><?= euros($f['prix_base']) ?></strong>
+                        </div>
+                        <button type="submit" name="formule_id" value="<?= (int) $f['id'] ?>" class="btn-choisir">
+                            Choisir <span>+</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         <?php endforeach; ?>
     </form>

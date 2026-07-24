@@ -102,9 +102,12 @@ function layout_public_debut(string $titre): void
     $base = base_url();
     ?>
     <header class="site-header">
-        <div>
-            <div class="brand">Les Villas <span>Blanches</span></div>
-            <div class="brand-tag"><?= h(config('sous_marque')) ?> · Atelier d'architecture</div>
+        <div class="brand-lockup">
+            <span class="brand-logo" style="background-image:url('<?= h($base) ?>/assets/logo.jpg')"></span>
+            <div>
+                <div class="brand">Les Villas <span>Blanches</span></div>
+                <div class="brand-tag"><?= h(config('sous_marque')) ?> · Atelier d'architecture</div>
+            </div>
         </div>
     </header>
     <?php layout_flashs();
@@ -119,10 +122,13 @@ function layout_client_debut(string $titre): void
     $base = base_url();
     ?>
     <header class="site-header">
-        <div>
-            <a href="<?= h($base) ?>/client/index.php" class="brand">Les Villas <span>Blanches</span></a>
-            <div class="brand-tag"><?= h(config('sous_marque')) ?></div>
-        </div>
+        <a href="<?= h($base) ?>/client/index.php" class="brand-lockup">
+            <span class="brand-logo" style="background-image:url('<?= h($base) ?>/assets/logo.jpg')"></span>
+            <div>
+                <div class="brand">Les Villas <span>Blanches</span></div>
+                <div class="brand-tag"><?= h(config('sous_marque')) ?></div>
+            </div>
+        </a>
         <nav class="header-nav">
             <a href="<?= h($base) ?>/client/index.php">Mes plans</a>
             <a href="<?= h($base) ?>/client/documents.php">Documents</a>
@@ -156,8 +162,13 @@ function layout_admin_debut(string $titre, string $actif = ''): void
     <div class="admin-shell">
         <aside class="admin-side">
             <div class="admin-brand">
-                <div class="brand">LVB<span>.</span></div>
-                <div class="brand-tag">Administration</div>
+                <div class="brand-lockup">
+                    <span class="brand-logo" style="background-image:url('<?= h($base) ?>/assets/logo.jpg')"></span>
+                    <div>
+                        <div class="brand">Les Villas <span>Blanches</span></div>
+                        <div class="brand-tag">Administration</div>
+                    </div>
+                </div>
             </div>
             <nav class="admin-nav">
                 <?php foreach ($liens as $cle => [$url, $label]): ?>

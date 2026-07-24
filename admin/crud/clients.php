@@ -16,6 +16,7 @@ crud_page([
         'telephone'   => 'Téléphone',
         'cree_le'     => 'Créé le',
     ],
+    'lien_voir' => fn($l) => base_url() . '/admin/crud/client_detail.php?id=' . (int) $l['id'],
     'champs' => [
         ['nom' => 'nom', 'label' => 'Nom complet', 'type' => 'text', 'requis' => true],
         ['nom' => 'identifiant', 'label' => 'Identifiant (email ou login)', 'type' => 'text', 'requis' => true],
