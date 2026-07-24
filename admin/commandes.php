@@ -30,6 +30,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         redirect($base . '/admin/commandes.php?config=' . $configId);
     }
+    if (($_POST['action'] ?? '') === 'supprimer') {
+        // Suppression définitive (réservée aux configurations annulées par le client).
+        $configId = (int) ($_POST['config_id'] ?? 0);
+        $sup = db()->prepare('DELETE FROM configurations WHERE id = ? AND statut = \'annule_client\'');
+        $sup->execute([$configId]);
+        flash($sup->rowCount()
+            ? 'Configuration supprimée définitivement.'
+            : 'Seule une configuration annulée par le client peut être supprimée ici.',
+            $sup->rowCount() ? 'succes' : 'erreur');
+        redirect($base . '/admin/commandes.php?statut=annule_client');
+    }
 }
 
 $detailId = (int) ($_GET['config'] ?? 0);
@@ -114,6 +125,20 @@ if ($detailId) {
                     Valider la commande &amp; envoyer les documents
                 </button>
             </form>
+        <?php elseif ($cfg['statut'] === 'annule_client'): ?>
+            <div class="flash flash-info">
+                Cette configuration a été <strong>annulée par le client</strong>
+                <?php if ($cfg['annule_le']): ?>le <?= h(date('d/m/Y', strtotime($cfg['annule_le']))) ?><?php endif; ?>.
+                Sans suppression de votre part, elle sera automatiquement supprimée 15 jours après l'annulation.
+            </div>
+            <form method="post" class="detail-actions">
+                <?= csrf_input() ?>
+                <input type="hidden" name="config_id" value="<?= $detailId ?>">
+                <button type="submit" name="action" value="supprimer" class="btn-line btn-danger"
+                        onclick="return confirm('Supprimer DÉFINITIVEMENT cette configuration ? Action irréversible.');">
+                    Supprimer définitivement
+                </button>
+            </form>
         <?php endif; ?>
     </div>
     <?php
@@ -125,7 +150,11 @@ if ($detailId) {
  * VUE LISTE
  * ================================================================== */
 $filtre = $_GET['statut'] ?? 'tous';
-$statutsValides = ['en_cours', 'en_attente', 'validee'];
+$statutsValides = ['en_cours', 'en_attente', 'validee', 'annule_client'];
+$libelleStatut = [
+    'en_cours' => 'En cours', 'en_attente' => 'En attente',
+    'validee' => 'Validée', 'annule_client' => 'Annulé par le client',
+];
 $where = '';
 $params = [];
 if (in_array($filtre, $statutsValides, true)) {
@@ -146,7 +175,7 @@ $stmt = db()->prepare(
 $stmt->execute($params);
 $commandes = $stmt->fetchAll();
 
-$onglets = ['tous' => 'Toutes', 'en_attente' => 'En attente', 'en_cours' => 'En cours', 'validee' => 'Validées'];
+$onglets = ['tous' => 'Toutes', 'en_attente' => 'En attente', 'en_cours' => 'En cours', 'validee' => 'Validées', 'annule_client' => 'Annulées'];
 
 layout_admin_debut('Commandes', 'commandes');
 ?>
@@ -171,7 +200,7 @@ layout_admin_debut('Commandes', 'commandes');
                     <td><?= h($c['plan_nom']) ?></td>
                     <td><?= h($c['formule_nom']) ?></td>
                     <td><?= euros($c['prix_total']) ?></td>
-                    <td><span class="badge badge-<?= h($c['statut']) ?>"><?= h($c['statut']) ?></span></td>
+                    <td><span class="badge badge-<?= h($c['statut']) ?>"><?= h($libelleStatut[$c['statut']] ?? $c['statut']) ?></span></td>
                     <td><a class="btn-line" href="<?= h($base) ?>/admin/commandes.php?config=<?= (int) $c['id'] ?>">Détail</a></td>
                 </tr>
             <?php endforeach; ?>

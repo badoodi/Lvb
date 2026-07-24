@@ -727,3 +727,82 @@ img{ max-width:100%; display:block; }
 .config-detail-head h3{ font-family:var(--font-display); font-weight:600; font-size:1.2rem; }
 .btn-voir{ border-color:var(--blueprint); color:var(--blueprint); }
 .btn-voir:hover{ background:var(--blueprint); color:#fff; }
+
+/* =========================================================
+   AJOUTS v4 — photos de formules en fond, cartes produits
+   à image, statut « annulé par le client »
+   ========================================================= */
+
+/* ---------- photos réelles en fond des formules ---------- */
+.formule-card{ background-color:#16244f; }
+.formule-card.niveau-1{ background-image:url('assets/formule-1.jpg'); background-size:cover; background-position:center; }
+.formule-card.niveau-2{ background-image:url('assets/formule-2.jpg'); background-size:cover; background-position:center; }
+.formule-card.niveau-3{ background-image:url('assets/formule-3.jpg'); background-size:cover; background-position:center; }
+.formule-sheen{ background:linear-gradient(180deg, rgba(8,14,36,.10) 0%, rgba(8,14,36,.20) 45%, rgba(8,14,36,.35) 100%); }
+
+/* photos en fond des bannières (même style) */
+.banner{ background-color:#16244f; }
+.banner.niveau-1{ background-image:url('assets/formule-1.jpg'); background-size:cover; background-position:center 40%; }
+.banner.niveau-2{ background-image:url('assets/formule-2.jpg'); background-size:cover; background-position:center 45%; }
+.banner.niveau-3{ background-image:url('assets/formule-3.jpg'); background-size:cover; background-position:center 45%; }
+.banner-sheen{ background:linear-gradient(80deg, rgba(6,12,32,.78) 0%, rgba(6,12,32,.42) 45%, rgba(6,12,32,.15) 100%); }
+
+/* ---------- CARTES PRODUITS (choix) alignées horizontalement ---------- */
+.produit-liste{ display:flex; flex-wrap:wrap; gap:16px; }
+.produit-card{
+  position:relative; width:190px; flex:0 0 auto;
+  background:#fff; border:1px solid var(--line); border-radius:16px;
+  cursor:pointer; transition:border-color .15s, box-shadow .15s, transform .15s;
+  display:flex; flex-direction:column; overflow:visible;
+}
+.produit-card:hover{ border-color:var(--blueprint); box-shadow:var(--shadow); transform:translateY(-2px); }
+.produit-img{
+  position:relative; aspect-ratio:1/1; border-radius:15px 15px 0 0; overflow:hidden;
+  background:#EEF2FB center/cover no-repeat;
+}
+.produit-img-vide{ background:linear-gradient(135deg,var(--blueprint-soft),#EEF2FC); }
+.produit-img-vide::after{ content:"⌂"; position:absolute; inset:0; display:grid; place-items:center; font-size:3rem; color:var(--blueprint); opacity:.35; }
+.produit-tag{
+  position:absolute; top:8px; left:8px; z-index:2;
+  background:rgba(255,255,255,.94); color:var(--ink); font-size:.76rem; font-weight:700;
+  padding:4px 10px; border-radius:999px; box-shadow:0 2px 8px rgba(0,0,0,.14);
+}
+.produit-tag.supp{ color:var(--brass); }
+.produit-body{ padding:12px 13px 14px; display:flex; flex-direction:column; gap:4px; border-radius:0 0 15px 15px; }
+.produit-nom{ font-weight:600; font-size:.95rem; line-height:1.25; }
+.produit-desc{
+  font-size:.8rem; color:var(--ink-soft); line-height:1.35;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.produit-choisir{ margin-top:6px; font-size:.78rem; font-weight:600; color:var(--blueprint); }
+
+/* sélection à la carte (catégorie « toute la villa », radio invisible) */
+.produit-radio{ position:absolute; opacity:0; width:0; height:0; pointer-events:none; }
+.produit-check{
+  position:absolute; top:8px; right:8px; z-index:2; width:26px; height:26px; border-radius:50%;
+  background:var(--blueprint); color:#fff; display:grid; place-items:center; font-size:.8rem;
+  opacity:0; transform:scale(.6); transition:.15s; box-shadow:0 2px 8px rgba(0,0,0,.22);
+}
+.produit-choix:has(.produit-radio:checked){ border-color:var(--blueprint); box-shadow:0 0 0 2px var(--blueprint); }
+.produit-choix:has(.produit-radio:checked) .produit-check{ opacity:1; transform:scale(1); }
+
+/* par pièce : carte active + compteur de pièces */
+.produit-assign.actif{ border-color:var(--blueprint); box-shadow:0 0 0 2px var(--blueprint); }
+.produit-count{
+  position:absolute; top:8px; right:8px; z-index:2; background:var(--blueprint); color:#fff;
+  font-size:.74rem; font-weight:700; padding:4px 10px; border-radius:999px;
+}
+.produit-assign .piece-menu{ top:calc(100% + 6px); left:0; right:auto; }
+
+/* carte « ne pas choisir » */
+.produit-vide{ border-style:dashed; }
+.produit-vide-inner{ margin:auto; text-align:center; color:var(--ink-soft); font-size:.88rem; font-weight:600; padding:24px; line-height:1.3; }
+.produit-vide:has(input:checked){ border-color:var(--blueprint); box-shadow:0 0 0 2px var(--blueprint); }
+.produit-vide:has(input:checked) .produit-vide-inner{ color:var(--blueprint); }
+
+/* ---------- badge « annulé par le client » ---------- */
+.badge-annule_client{ color:#a23a24; background:#FDECE8; }
+
+@media (max-width:560px){
+  .produit-card{ width:calc(50% - 8px); }
+}

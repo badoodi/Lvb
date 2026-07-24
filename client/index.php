@@ -6,13 +6,29 @@ require_once __DIR__ . '/../lib/layout.php';
 $client = exiger_client();
 $base = base_url();
 
-// Projets (configurations) déjà démarrés par ce client.
+// Annulation d'une configuration par le client (masquée pour lui, conservée
+// pour l'admin en statut « annulé par le client »).
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'annuler') {
+    csrf_verifier();
+    $configId = (int) ($_POST['config_id'] ?? 0);
+    $maj = db()->prepare(
+        'UPDATE configurations
+         SET statut = \'annule_client\', annule_le = NOW()
+         WHERE id = ? AND client_id = ? AND statut IN (\'en_cours\', \'en_attente\')'
+    );
+    $maj->execute([$configId, $client['id']]);
+    flash($maj->rowCount() ? 'Configuration annulée.' : 'Cette configuration ne peut pas être annulée.',
+          $maj->rowCount() ? 'succes' : 'erreur');
+    redirect($base . '/client/index.php');
+}
+
+// Projets (configurations) déjà démarrés par ce client (hors annulées).
 $stmt = db()->prepare(
     'SELECT c.*, p.nom AS plan_nom, f.nom AS formule_nom
      FROM configurations c
      JOIN plans_villa p ON p.id = c.plan_id
      JOIN formules f    ON f.id = c.formule_id
-     WHERE c.client_id = ?
+     WHERE c.client_id = ? AND c.statut <> \'annule_client\'
      ORDER BY c.date_creation DESC'
 );
 $stmt->execute([$client['id']]);
@@ -62,6 +78,14 @@ layout_client_debut('Mes plans');
                         <a class="btn-line" href="<?= h($base) ?>/client/documents.php?config=<?= (int) $pr['id'] ?>">
                             Documents techniques
                         </a>
+                    <?php endif; ?>
+                    <?php if (in_array($pr['statut'], ['en_cours', 'en_attente'], true)): ?>
+                        <form method="post" onsubmit="return confirm('Supprimer définitivement cette configuration ? Cette action est irréversible.');">
+                            <?= csrf_input() ?>
+                            <input type="hidden" name="action" value="annuler">
+                            <input type="hidden" name="config_id" value="<?= (int) $pr['id'] ?>">
+                            <button type="submit" class="btn-line btn-danger btn-full">Supprimer cette configuration</button>
+                        </form>
                     <?php endif; ?>
                 </div>
             </div>

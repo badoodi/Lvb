@@ -26,7 +26,7 @@ $stmt = db()->prepare(
      JOIN plans_villa p ON p.id = c.plan_id
      JOIN formules f    ON f.id = c.formule_id
      JOIN plan_formule pf ON pf.plan_id = c.plan_id AND pf.formule_id = c.formule_id
-     WHERE c.id = ? AND c.client_id = ?'
+     WHERE c.id = ? AND c.client_id = ? AND c.statut <> \'annule_client\''
 );
 $stmt->execute([$configId, $client['id']]);
 $config = $stmt->fetch();
@@ -283,20 +283,19 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
                                                name="sel[<?= $catId ?>][<?= (int) $pc['id'] ?>]" value="<?= (int) ($selCat[(int) $pc['id']] ?? 0) ?>">
                                     <?php endforeach; ?>
 
-                                    <div class="option-list piece-first" data-cat="<?= $catId ?>">
-                                        <?php foreach ($produitsChoix as $ch): $prod = $ch['prod']; $pid = (int) $prod['id']; ?>
-                                            <div class="option-row option-assign">
-                                                <span class="option-label"><?= h($prod['nom']) ?>
-                                                    <span class="option-note">réf. <?= h($prod['reference']) ?> · formule <?= h($prod['formule_nom']) ?></span>
-                                                </span>
-                                                <?php if ($ch['upgrade']): ?>
-                                                    <span class="option-supp">+ <?= euros($ch['supp']) ?></span>
-                                                <?php else: ?>
-                                                    <span class="option-level"><?= euros($prod['prix']) ?></span>
-                                                <?php endif; ?>
-                                                <button type="button" class="choisir-piece" data-cat="<?= $catId ?>" data-product="<?= $pid ?>">
-                                                    Choisir une pièce <span class="piece-count"></span>
-                                                </button>
+                                    <div class="produit-liste piece-first" data-cat="<?= $catId ?>">
+                                        <?php foreach ($produitsChoix as $ch): $prod = $ch['prod']; $pid = (int) $prod['id'];
+                                            $imgProd = !empty($prod['image']) ? (base_url() . '/' . ltrim($prod['image'], '/')) : ''; ?>
+                                            <div class="produit-card produit-assign" data-cat="<?= $catId ?>" data-product="<?= $pid ?>" role="button" tabindex="0">
+                                                <div class="produit-img<?= $imgProd ? '' : ' produit-img-vide' ?>"<?= $imgProd ? ' style="background-image:url(\'' . h($imgProd) . '\')"' : '' ?>>
+                                                    <span class="produit-tag<?= $ch['upgrade'] ? ' supp' : '' ?>"><?= $ch['upgrade'] ? '+ ' . euros($ch['supp']) : euros($prod['prix']) ?></span>
+                                                    <span class="produit-count" hidden></span>
+                                                </div>
+                                                <div class="produit-body">
+                                                    <div class="produit-nom"><?= h($prod['nom']) ?></div>
+                                                    <?php if (!empty($prod['description'])): ?><div class="produit-desc"><?= h($prod['description']) ?></div><?php endif; ?>
+                                                    <div class="produit-choisir">Choisir des pièces ▾</div>
+                                                </div>
 
                                                 <div class="piece-menu" hidden>
                                                     <div class="piece-menu-head">Affecter « <?= h($prod['nom']) ?> » à&nbsp;:</div>
@@ -342,44 +341,26 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
                                 $groupe = 'sel[' . $catId . '][' . $pid . ']';
                                 $selPiece = $selections[$catId][$pid] ?? 0;
                                 ?>
-                                <div class="piece-bloc">
-                                    <div class="option-list">
-                                        <?php foreach ($opts['proposes'] as $prod): ?>
-                                            <label class="option-row">
-                                                <span class="option-radio">
-                                                    <input type="radio" name="<?= h($groupe) ?>" value="<?= (int) $prod['id'] ?>"
-                                                           <?= $selPiece === (int) $prod['id'] ? 'checked' : '' ?> <?= $modifiable ? '' : 'disabled' ?>>
-                                                </span>
-                                                <span class="option-label"><?= h($prod['nom']) ?>
-                                                    <span class="option-note">réf. <?= h($prod['reference']) ?> · formule <?= h($prod['formule_nom']) ?></span>
-                                                </span>
-                                                <span class="option-level"><?= euros($prod['prix']) ?></span>
-                                            </label>
-                                        <?php endforeach; ?>
-                                    </div>
-                                    <?php if ($opts['upgrades']): ?>
-                                        <details class="upgrade" <?= ($selPiece && !in_array($selPiece, array_map(fn($p) => (int) $p['id'], $opts['proposes']), true)) ? 'open' : '' ?>>
-                                            <summary>Voir d'autres produits (formule supérieure)</summary>
-                                            <div class="option-list upgrade-list">
-                                                <?php foreach ($opts['upgrades'] as $prod): $supp = max(0.0, (float) $prod['prix'] - $opts['ref']); ?>
-                                                    <label class="option-row">
-                                                        <span class="option-radio">
-                                                            <input type="radio" name="<?= h($groupe) ?>" value="<?= (int) $prod['id'] ?>"
-                                                                   <?= $selPiece === (int) $prod['id'] ? 'checked' : '' ?> <?= $modifiable ? '' : 'disabled' ?>>
-                                                        </span>
-                                                        <span class="option-label"><?= h($prod['nom']) ?>
-                                                            <span class="option-note">réf. <?= h($prod['reference']) ?> · formule <?= h($prod['formule_nom']) ?></span>
-                                                        </span>
-                                                        <span class="option-supp">+ <?= euros($supp) ?></span>
-                                                    </label>
-                                                <?php endforeach; ?>
+                                <div class="produit-liste" data-cat="<?= $catId ?>">
+                                    <?php foreach ($produitsChoix as $ch): $prod = $ch['prod']; $pid = (int) $prod['id'];
+                                        $imgProd = !empty($prod['image']) ? (base_url() . '/' . ltrim($prod['image'], '/')) : ''; ?>
+                                        <label class="produit-card produit-choix">
+                                            <input type="radio" class="produit-radio" name="<?= h($groupe) ?>" value="<?= $pid ?>"
+                                                   <?= $selPiece === $pid ? 'checked' : '' ?> <?= $modifiable ? '' : 'disabled' ?>>
+                                            <div class="produit-img<?= $imgProd ? '' : ' produit-img-vide' ?>"<?= $imgProd ? ' style="background-image:url(\'' . h($imgProd) . '\')"' : '' ?>>
+                                                <span class="produit-tag<?= $ch['upgrade'] ? ' supp' : '' ?>"><?= $ch['upgrade'] ? '+ ' . euros($ch['supp']) : euros($prod['prix']) ?></span>
+                                                <span class="produit-check">✓</span>
                                             </div>
-                                        </details>
-                                    <?php endif; ?>
+                                            <div class="produit-body">
+                                                <div class="produit-nom"><?= h($prod['nom']) ?></div>
+                                                <?php if (!empty($prod['description'])): ?><div class="produit-desc"><?= h($prod['description']) ?></div><?php endif; ?>
+                                            </div>
+                                        </label>
+                                    <?php endforeach; ?>
                                     <?php if ($modifiable): ?>
-                                        <label class="option-vider">
+                                        <label class="produit-card produit-vide">
                                             <input type="radio" name="<?= h($groupe) ?>" value="0" <?= $selPiece === 0 ? 'checked' : '' ?>>
-                                            Ne pas choisir
+                                            <div class="produit-vide-inner">Ne pas<br>choisir</div>
                                         </label>
                                     <?php endif; ?>
                                 </div>
@@ -423,21 +404,23 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
         document.querySelectorAll('.sel-hidden[data-cat="' + cat + '"]').forEach(function (h) {
             if (h.value && h.value !== '0') { c[h.value] = (c[h.value] || 0) + 1; }
         });
-        document.querySelectorAll('.choisir-piece[data-cat="' + cat + '"]').forEach(function (btn) {
-            var n = c[btn.getAttribute('data-product')] || 0;
-            var span = btn.querySelector('.piece-count');
-            span.textContent = n ? ('· ' + n + ' pièce' + (n > 1 ? 's' : '')) : '';
-            btn.classList.toggle('actif', n > 0);
+        document.querySelectorAll('.produit-assign[data-cat="' + cat + '"]').forEach(function (card) {
+            var n = c[card.getAttribute('data-product')] || 0;
+            var span = card.querySelector('.produit-count');
+            if (n) { span.hidden = false; span.textContent = n + ' pièce' + (n > 1 ? 's' : ''); }
+            else { span.hidden = true; }
+            card.classList.toggle('actif', n > 0);
         });
     }
     function closeMenus() {
         document.querySelectorAll('.piece-menu').forEach(function (m) { m.hidden = true; });
     }
-    // Ouverture / fermeture du menu flottant "Choisir une pièce".
-    document.querySelectorAll('.choisir-piece').forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
+    // Clic n'importe où sur la carte produit -> ouvre/ferme son menu de pièces.
+    document.querySelectorAll('.produit-assign').forEach(function (card) {
+        card.addEventListener('click', function (e) {
+            if (e.target.closest('.piece-menu')) { return; }
             e.stopPropagation();
-            var menu = btn.parentElement.querySelector('.piece-menu');
+            var menu = card.querySelector('.piece-menu');
             var open = menu.hidden;
             closeMenus();
             menu.hidden = !open;
@@ -477,7 +460,7 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
     });
     document.addEventListener('click', closeMenus);
     // Compteurs initiaux.
-    document.querySelectorAll('.option-list.piece-first').forEach(function (l) {
+    document.querySelectorAll('.produit-liste.piece-first').forEach(function (l) {
         refresh(l.getAttribute('data-cat'));
     });
 })();

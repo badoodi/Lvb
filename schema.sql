@@ -247,16 +247,19 @@ CREATE TABLE configurations (
     client_id       INT UNSIGNED NOT NULL,
     plan_id         INT UNSIGNED NOT NULL,
     formule_id      INT UNSIGNED NOT NULL,          -- formule de base choisie pour ce plan
-    statut          ENUM('en_cours','en_attente','validee') NOT NULL DEFAULT 'en_cours',
-    -- en_cours   : le client configure encore sa villa
-    -- en_attente : le client a validé ses choix, en attente de validation admin
-    -- validee    : l'admin a validé la commande -> les plans (électrique/plomberie) sont envoyés au client
+    statut          ENUM('en_cours','en_attente','validee','annule_client') NOT NULL DEFAULT 'en_cours',
+    -- en_cours      : le client configure encore sa villa
+    -- en_attente    : le client a validé ses choix, en attente de validation admin
+    -- validee       : l'admin a validé la commande -> les plans (électrique/plomberie) sont envoyés au client
+    -- annule_client : le client a annulé ; invisible pour lui, visible par l'admin ;
+    --                 supprimée automatiquement 15 jours après annule_le si l'admin ne l'a pas fait avant
     prix_total      DECIMAL(14,2) NOT NULL DEFAULT 0,
     date_creation   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     date_soumission TIMESTAMP NULL,                 -- passage en_cours -> en_attente (validation client)
     date_validation TIMESTAMP NULL,                 -- passage en_attente -> validee (validation admin)
     valide_par      INT UNSIGNED NULL,               -- admin qui a validé la commande
     plans_envoyes_le TIMESTAMP NULL,                 -- date d'envoi des plans électrique/plomberie par mail
+    annule_le        TIMESTAMP NULL,                 -- date d'annulation par le client (purge auto à +15 jours)
     CONSTRAINT fk_config_client  FOREIGN KEY (client_id)  REFERENCES clients(id) ON DELETE CASCADE,
     CONSTRAINT fk_config_plan    FOREIGN KEY (plan_id)    REFERENCES plans_villa(id) ON DELETE RESTRICT,
     CONSTRAINT fk_config_formule FOREIGN KEY (formule_id) REFERENCES formules(id) ON DELETE RESTRICT,

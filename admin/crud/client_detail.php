@@ -55,7 +55,7 @@ $optStmt = db()->prepare(
      ORDER BY cat.ordre_affichage, pc.ordre_affichage'
 );
 
-$libelleStatut = ['en_cours' => 'En cours', 'en_attente' => 'En attente', 'validee' => 'Validée'];
+$libelleStatut = ['en_cours' => 'En cours', 'en_attente' => 'En attente', 'validee' => 'Validée', 'annule_client' => 'Annulé par le client'];
 
 layout_admin_debut('Client — ' . $client['nom'], 'clients');
 ?>

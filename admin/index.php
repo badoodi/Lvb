@@ -8,6 +8,16 @@ exiger_admin();
 $base = base_url();
 
 $pdo = db();
+
+// Purge automatique : configurations annulées par le client il y a plus de
+// 15 jours et non supprimées par l'admin. S'exécute à chaque visite du dashboard.
+$pdo->query(
+    "DELETE FROM configurations
+     WHERE statut = 'annule_client'
+       AND annule_le IS NOT NULL
+       AND annule_le < NOW() - INTERVAL 15 DAY"
+);
+
 $compte = fn(string $sql) => (int) $pdo->query($sql)->fetchColumn();
 
 $stats = [
@@ -39,9 +49,10 @@ $configs = $pdo->query(
 )->fetchAll();
 
 $libelleStatut = [
-    'en_cours'   => 'En cours',
-    'en_attente' => 'En attente',
-    'validee'    => 'Validée',
+    'en_cours'      => 'En cours',
+    'en_attente'    => 'En attente',
+    'validee'       => 'Validée',
+    'annule_client' => 'Annulé par le client',
 ];
 
 layout_admin_debut('Vue globale', '');
