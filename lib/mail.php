@@ -69,3 +69,61 @@ function envoyer_documents_au_client(int $configId): bool
 
     return $envoye;
 }
+
+/**
+ * Notifie l'admin (adresse de test badaradiaw@gmail.com) qu'un client vient de
+ * valider sa configuration, avec le récapitulatif PDF en pièce jointe.
+ */
+function notifier_admin_validation(int $configId, string $pdfBytes): bool
+{
+    $stmt = db()->prepare(
+        'SELECT cl.nom AS client_nom, p.nom AS plan_nom, f.nom AS formule_nom, cfg.prix_total
+         FROM configurations cfg
+         JOIN clients cl    ON cl.id = cfg.client_id
+         JOIN plans_villa p ON p.id = cfg.plan_id
+         JOIN formules f    ON f.id = cfg.formule_id
+         WHERE cfg.id = ?'
+    );
+    $stmt->execute([$configId]);
+    $c = $stmt->fetch();
+    if (!$c) {
+        return false;
+    }
+
+    $marque = config('marque');
+    $destinataire = 'badaradiaw@gmail.com'; // adresse de test (admin)
+    $sujet = "[$marque] Configuration validée par un client";
+
+    $texte = "Bonjour,\n\n"
+        . "Le client « {$c['client_nom']} » vient de valider sa configuration :\n"
+        . "- Plan : {$c['plan_nom']}\n"
+        . "- Formule : {$c['formule_nom']}\n"
+        . "- Total estimé : " . number_format((float) $c['prix_total'], 2, ',', ' ') . " EUR\n\n"
+        . "Le récapitulatif détaillé est en pièce jointe (PDF).\n"
+        . "Connectez-vous au tableau de bord pour valider la commande.\n\n"
+        . "$marque\n";
+
+    $filename = "recap-configuration-$configId.pdf";
+    $boundary = '=_lvb_' . md5(uniqid('', true));
+
+    $headers  = 'From: ' . config('email_expediteur') . "\r\n";
+    $headers .= "MIME-Version: 1.0\r\n";
+    $headers .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\r\n";
+
+    $corps  = "--$boundary\r\n";
+    $corps .= "Content-Type: text/plain; charset=UTF-8\r\n";
+    $corps .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
+    $corps .= $texte . "\r\n";
+    $corps .= "--$boundary\r\n";
+    $corps .= "Content-Type: application/pdf; name=\"$filename\"\r\n";
+    $corps .= "Content-Transfer-Encoding: base64\r\n";
+    $corps .= "Content-Disposition: attachment; filename=\"$filename\"\r\n\r\n";
+    $corps .= chunk_split(base64_encode($pdfBytes)) . "\r\n";
+    $corps .= "--$boundary--";
+
+    $envoye = function_exists('mail') ? @mail($destinataire, $sujet, $corps, $headers) : false;
+    if (!$envoye) {
+        error_log("[LVB] Notification admin (config #$configId) -> $destinataire : envoi mail() indisponible.");
+    }
+    return $envoye;
+}

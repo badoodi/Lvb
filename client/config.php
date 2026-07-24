@@ -193,7 +193,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $modifiable) {
         );
         $maj->execute([$prixTotal, $configId, $client['id']]);
         $pdo->commit();
-        flash('Votre configuration a été validée et transmise à l\'atelier.');
+        // Récapitulatif PDF + notification email à l'admin (avec la pièce jointe).
+        try {
+            require_once __DIR__ . '/../lib/recap.php';
+            require_once __DIR__ . '/../lib/mail.php';
+            $pdf = generer_pdf_configuration($configId);
+            notifier_admin_validation($configId, $pdf);
+        } catch (Throwable $e) {
+            error_log('[LVB] PDF/notif validation config #' . $configId . ' : ' . $e->getMessage());
+        }
+        flash('Votre configuration a été validée et transmise à l\'atelier. Vous pouvez télécharger votre récapitulatif (PDF).');
         redirect($base . '/client/index.php');
     } else {
         $maj = $pdo->prepare('UPDATE configurations SET prix_total = ? WHERE id = ?');
@@ -359,7 +368,7 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
                                     <?php endforeach; ?>
                                     <?php if ($modifiable): ?>
                                         <label class="produit-card produit-vide">
-                                            <input type="radio" name="<?= h($groupe) ?>" value="0" <?= $selPiece === 0 ? 'checked' : '' ?>>
+                                            <input type="radio" class="produit-radio" name="<?= h($groupe) ?>" value="0" <?= $selPiece === 0 ? 'checked' : '' ?>>
                                             <div class="produit-vide-inner">Ne pas<br>choisir</div>
                                         </label>
                                     <?php endif; ?>

@@ -74,6 +74,11 @@ layout_client_debut('Mes plans');
                             Voir le détail
                         </a>
                     <?php endif; ?>
+                    <?php if (in_array($pr['statut'], ['en_attente', 'validee'], true)): ?>
+                        <a class="btn-line" href="<?= h($base) ?>/pdf_recap.php?config=<?= (int) $pr['id'] ?>">
+                            Récapitulatif (PDF)
+                        </a>
+                    <?php endif; ?>
                     <?php if ($pr['statut'] === 'validee'): ?>
                         <a class="btn-line" href="<?= h($base) ?>/client/documents.php?config=<?= (int) $pr['id'] ?>">
                             Documents techniques
@@ -97,6 +102,11 @@ layout_client_debut('Mes plans');
         <h2>Démarrer un nouveau projet</h2>
         <span class="count">Choisissez un plan</span>
     </div>
+    <p class="section-intro">
+        <strong>Étape 1 — choisissez le plan de votre villa</strong> parmi ceux proposés ci-dessous.
+        Vous sélectionnerez ensuite votre formule, puis vous configurerez chaque pièce
+        (matériaux, climatisation, carrelage…) pour composer votre villa sur-mesure.
+    </p>
 
     <?php if (!$plans): ?>
         <p class="vide">Aucun plan de villa n'est disponible pour le moment.</p>

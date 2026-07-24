@@ -116,6 +116,10 @@ if ($detailId) {
 
         <div class="detail-total">Prix total : <strong><?= euros($cfg['prix_total']) ?></strong></div>
 
+        <?php if (in_array($cfg['statut'], ['en_attente', 'validee'], true)): ?>
+            <p><a class="btn-line" href="<?= h($base) ?>/pdf_recap.php?config=<?= $detailId ?>">Télécharger le récapitulatif (PDF)</a></p>
+        <?php endif; ?>
+
         <?php if ($cfg['statut'] === 'en_attente'): ?>
             <form method="post" class="detail-actions">
                 <?= csrf_input() ?>
