@@ -65,6 +65,18 @@ function euros($montant): string
     return number_format((float) $montant, 2, ',', ' ') . ' €';
 }
 
+/** Transforme un texte en identifiant URL/fichier : minuscules, sans accents. */
+function slug(string $texte): string
+{
+    $t = @iconv('UTF-8', 'ASCII//TRANSLIT', $texte);
+    if ($t === false) {
+        $t = $texte;
+    }
+    $t = strtolower($t);
+    $t = preg_replace('/[^a-z0-9]+/', '-', $t);
+    return trim($t, '-') ?: 'x';
+}
+
 function redirect(string $url): void
 {
     header('Location: ' . $url);

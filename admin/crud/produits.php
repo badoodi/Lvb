@@ -53,7 +53,21 @@ crud_page([
         ['nom' => 'reference', 'label' => 'Référence (SKU)', 'type' => 'text', 'requis' => true, 'aide' => 'Code produit unique, distinct du numéro de position.'],
         ['nom' => 'dimensions', 'label' => 'Dimensions', 'type' => 'text'],
         ['nom' => 'disponible', 'label' => 'Disponible', 'type' => 'bool', 'defaut' => 1],
-        ['nom' => 'image', 'label' => 'Image du produit', 'type' => 'image', 'aide' => 'Téléversez une image depuis votre ordinateur (jpg, png, webp…).'],
+        ['nom' => 'image', 'label' => 'Image du produit', 'type' => 'image',
+         'aide' => 'Téléversez une image depuis votre ordinateur (jpg, png, webp…). Le fichier est renommé avec le nom de la formule.',
+         // Renomme automatiquement le fichier avec « formule-<nom de la formule> ».
+         'prefixe' => function (array $post) {
+             $fid = (int) ($post['formule_id'] ?? 0);
+             if ($fid) {
+                 $st = db()->prepare('SELECT nom FROM formules WHERE id = ?');
+                 $st->execute([$fid]);
+                 $nom = $st->fetchColumn();
+                 if ($nom) {
+                     return 'formule-' . $nom;
+                 }
+             }
+             return 'produit';
+         }],
     ],
     // Numéro de position auto-assigné à la création (MAX+1), distinct de la référence.
     'avant_ecrire' => function (array &$valeurs, bool $creation) {

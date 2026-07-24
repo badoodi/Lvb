@@ -134,6 +134,82 @@ function charger_selections(int $configId): array
     return $map;
 }
 
+/* --- Rendu d'une carte produit (catégorie « par pièce ») --- */
+function carte_assign(array $ch, int $catId, array $etages, array $selCat): string
+{
+    $prod = $ch['prod'];
+    $pid = (int) $prod['id'];
+    $img = !empty($prod['image']) ? (base_url() . '/' . ltrim($prod['image'], '/')) : '';
+    ob_start(); ?>
+    <div class="produit-card produit-assign" data-cat="<?= $catId ?>" data-product="<?= $pid ?>" role="button" tabindex="0">
+        <div class="produit-img<?= $img ? '' : ' produit-img-vide' ?>"<?= $img ? ' style="background-image:url(\'' . h($img) . '\')"' : '' ?>>
+            <span class="produit-tag<?= $ch['upgrade'] ? ' supp' : '' ?>"><?= $ch['upgrade'] ? '+ ' . euros($ch['supp']) : euros($prod['prix']) ?></span>
+            <span class="produit-count" hidden></span>
+        </div>
+        <div class="produit-body">
+            <div class="produit-nom"><?= h($prod['nom']) ?></div>
+            <?php if (!empty($prod['description'])): ?><div class="produit-desc"><?= h($prod['description']) ?></div><?php endif; ?>
+            <div class="produit-choisir">Choisir des pièces ▾</div>
+        </div>
+        <div class="piece-menu" hidden>
+            <div class="piece-menu-head">Affecter « <?= h($prod['nom']) ?> » à&nbsp;:</div>
+            <div class="etage-accordion">
+                <?php foreach ($etages as $etNom => $piecesEt): ?>
+                    <div class="etage-item">
+                        <button type="button" class="etage-head"><?= h($etNom) ?><span class="chev">＋</span></button>
+                        <div class="etage-pieces" hidden>
+                            <?php foreach ($piecesEt as $pc): $pcid = (int) $pc['id']; ?>
+                                <label class="piece-check">
+                                    <input type="checkbox" class="assign-check" data-cat="<?= $catId ?>" data-piece="<?= $pcid ?>" value="<?= $pid ?>" <?= ((int) ($selCat[$pcid] ?? 0) === $pid) ? 'checked' : '' ?>>
+                                    <span class="piece-check-txt"><?= h($pc['nom']) ?><?php if (!empty($pc['description'])): ?><small><?= h($pc['description']) ?></small><?php endif; ?></span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+    <?php return ob_get_clean();
+}
+
+/* --- Rendu d'une carte produit (catégorie « toute la villa », choix radio) --- */
+function carte_choix(array $ch, string $groupe, int $selPiece, bool $modifiable): string
+{
+    $prod = $ch['prod'];
+    $pid = (int) $prod['id'];
+    $img = !empty($prod['image']) ? (base_url() . '/' . ltrim($prod['image'], '/')) : '';
+    ob_start(); ?>
+    <label class="produit-card produit-choix">
+        <input type="radio" class="produit-radio" name="<?= h($groupe) ?>" value="<?= $pid ?>" <?= $selPiece === $pid ? 'checked' : '' ?> <?= $modifiable ? '' : 'disabled' ?>>
+        <div class="produit-img<?= $img ? '' : ' produit-img-vide' ?>"<?= $img ? ' style="background-image:url(\'' . h($img) . '\')"' : '' ?>>
+            <span class="produit-tag<?= $ch['upgrade'] ? ' supp' : '' ?>"><?= $ch['upgrade'] ? '+ ' . euros($ch['supp']) : euros($prod['prix']) ?></span>
+            <span class="produit-check">✓</span>
+        </div>
+        <div class="produit-body">
+            <div class="produit-nom"><?= h($prod['nom']) ?></div>
+            <?php if (!empty($prod['description'])): ?><div class="produit-desc"><?= h($prod['description']) ?></div><?php endif; ?>
+        </div>
+    </label>
+    <?php return ob_get_clean();
+}
+
+/* --- Rendu du bloc « Voir d'autres options » (produits de la formule supérieure) --- */
+function bloc_upgrades(string $cartesHtml, string $nomFormuleSup, bool $ouvert): string
+{
+    ob_start(); ?>
+    <div class="upgrade-zone">
+        <button type="button" class="voir-options<?= $ouvert ? ' actif' : '' ?>">
+            <span class="vo-plus">＋ Voir d'autres options</span><span class="vo-moins">－ Masquer les options</span>
+        </button>
+        <div class="upgrade-panel"<?= $ouvert ? '' : ' hidden' ?>>
+            <div class="upgrade-titre">Options de la formule <?= h($nomFormuleSup) ?></div>
+            <div class="produit-liste"><?= $cartesHtml ?></div>
+        </div>
+    </div>
+    <?php return ob_get_clean();
+}
+
 /* =====================================================================
  * TRAITEMENT POST (enregistrer / valider)
  * ================================================================== */
@@ -265,6 +341,11 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
                             $produitsChoix[] = ['prod' => $p, 'supp' => max(0.0, (float) $p['prix'] - $opts['ref']), 'upgrade' => true];
                         }
                         $selCat = $selections[$catId] ?? [];
+                        // Base = produits de la formule choisie ; options = formule supérieure (max 5, jamais inférieure).
+                        $base = array_values(array_filter($produitsChoix, fn($c) => !$c['upgrade']));
+                        $ups  = array_values(array_filter($produitsChoix, fn($c) => $c['upgrade']));
+                        $nomFormuleSup = $ups ? $ups[0]['prod']['formule_nom'] : '';
+                        $upIds = array_map(fn($c) => (int) $c['prod']['id'], $ups);
                         ?>
                         <div class="category">
                             <div class="category-head">
@@ -293,44 +374,15 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
                                     <?php endforeach; ?>
 
                                     <div class="produit-liste piece-first" data-cat="<?= $catId ?>">
-                                        <?php foreach ($produitsChoix as $ch): $prod = $ch['prod']; $pid = (int) $prod['id'];
-                                            $imgProd = !empty($prod['image']) ? (base_url() . '/' . ltrim($prod['image'], '/')) : ''; ?>
-                                            <div class="produit-card produit-assign" data-cat="<?= $catId ?>" data-product="<?= $pid ?>" role="button" tabindex="0">
-                                                <div class="produit-img<?= $imgProd ? '' : ' produit-img-vide' ?>"<?= $imgProd ? ' style="background-image:url(\'' . h($imgProd) . '\')"' : '' ?>>
-                                                    <span class="produit-tag<?= $ch['upgrade'] ? ' supp' : '' ?>"><?= $ch['upgrade'] ? '+ ' . euros($ch['supp']) : euros($prod['prix']) ?></span>
-                                                    <span class="produit-count" hidden></span>
-                                                </div>
-                                                <div class="produit-body">
-                                                    <div class="produit-nom"><?= h($prod['nom']) ?></div>
-                                                    <?php if (!empty($prod['description'])): ?><div class="produit-desc"><?= h($prod['description']) ?></div><?php endif; ?>
-                                                    <div class="produit-choisir">Choisir des pièces ▾</div>
-                                                </div>
-
-                                                <div class="piece-menu" hidden>
-                                                    <div class="piece-menu-head">Affecter « <?= h($prod['nom']) ?> » à&nbsp;:</div>
-                                                    <div class="etage-accordion">
-                                                        <?php foreach ($etages as $etNom => $piecesEt): ?>
-                                                            <div class="etage-item">
-                                                                <button type="button" class="etage-head"><?= h($etNom) ?><span class="chev">＋</span></button>
-                                                                <div class="etage-pieces" hidden>
-                                                                    <?php foreach ($piecesEt as $pc): $pcid = (int) $pc['id']; ?>
-                                                                        <label class="piece-check">
-                                                                            <input type="checkbox" class="assign-check"
-                                                                                   data-cat="<?= $catId ?>" data-piece="<?= $pcid ?>" value="<?= $pid ?>"
-                                                                                   <?= ((int) ($selCat[$pcid] ?? 0) === $pid) ? 'checked' : '' ?>>
-                                                                            <span class="piece-check-txt"><?= h($pc['nom']) ?>
-                                                                                <?php if (!empty($pc['description'])): ?><small><?= h($pc['description']) ?></small><?php endif; ?>
-                                                                            </span>
-                                                                        </label>
-                                                                    <?php endforeach; ?>
-                                                                </div>
-                                                            </div>
-                                                        <?php endforeach; ?>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
+                                        <?php foreach ($base as $ch) { echo carte_assign($ch, $catId, $etages, $selCat); } ?>
                                     </div>
+                                    <?php if ($ups):
+                                        // Ouvre le panneau si une pièce a déjà reçu un produit de la formule supérieure.
+                                        $ouvert = (bool) array_intersect(array_map('intval', $selCat), $upIds);
+                                        $cartes = '';
+                                        foreach ($ups as $ch) { $cartes .= carte_assign($ch, $catId, $etages, $selCat); }
+                                        echo bloc_upgrades($cartes, $nomFormuleSup, $ouvert);
+                                    endif; ?>
 
                                 <?php else: /* lecture seule : récap pièce -> produit */ ?>
                                     <ul class="assign-recap">
@@ -351,21 +403,7 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
                                 $selPiece = $selections[$catId][$pid] ?? 0;
                                 ?>
                                 <div class="produit-liste" data-cat="<?= $catId ?>">
-                                    <?php foreach ($produitsChoix as $ch): $prod = $ch['prod']; $pid = (int) $prod['id'];
-                                        $imgProd = !empty($prod['image']) ? (base_url() . '/' . ltrim($prod['image'], '/')) : ''; ?>
-                                        <label class="produit-card produit-choix">
-                                            <input type="radio" class="produit-radio" name="<?= h($groupe) ?>" value="<?= $pid ?>"
-                                                   <?= $selPiece === $pid ? 'checked' : '' ?> <?= $modifiable ? '' : 'disabled' ?>>
-                                            <div class="produit-img<?= $imgProd ? '' : ' produit-img-vide' ?>"<?= $imgProd ? ' style="background-image:url(\'' . h($imgProd) . '\')"' : '' ?>>
-                                                <span class="produit-tag<?= $ch['upgrade'] ? ' supp' : '' ?>"><?= $ch['upgrade'] ? '+ ' . euros($ch['supp']) : euros($prod['prix']) ?></span>
-                                                <span class="produit-check">✓</span>
-                                            </div>
-                                            <div class="produit-body">
-                                                <div class="produit-nom"><?= h($prod['nom']) ?></div>
-                                                <?php if (!empty($prod['description'])): ?><div class="produit-desc"><?= h($prod['description']) ?></div><?php endif; ?>
-                                            </div>
-                                        </label>
-                                    <?php endforeach; ?>
+                                    <?php foreach ($base as $ch) { echo carte_choix($ch, $groupe, $selPiece, $modifiable); } ?>
                                     <?php if ($modifiable): ?>
                                         <label class="produit-card produit-vide">
                                             <input type="radio" class="produit-radio" name="<?= h($groupe) ?>" value="0" <?= $selPiece === 0 ? 'checked' : '' ?>>
@@ -373,6 +411,12 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
                                         </label>
                                     <?php endif; ?>
                                 </div>
+                                <?php if ($ups):
+                                    $ouvert = in_array($selPiece, $upIds, true);
+                                    $cartes = '';
+                                    foreach ($ups as $ch) { $cartes .= carte_choix($ch, $groupe, $selPiece, $modifiable); }
+                                    echo bloc_upgrades($cartes, $nomFormuleSup, $ouvert);
+                                endif; ?>
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
@@ -424,6 +468,15 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
     function closeMenus() {
         document.querySelectorAll('.piece-menu').forEach(function (m) { m.hidden = true; });
     }
+    // Bouton « Voir d'autres options » -> révèle les produits de la formule supérieure.
+    document.querySelectorAll('.voir-options').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var panel = btn.nextElementSibling;
+            var show = panel.hidden;
+            panel.hidden = !show;
+            btn.classList.toggle('actif', show);
+        });
+    });
     // Clic n'importe où sur la carte produit -> ouvre/ferme son menu de pièces.
     document.querySelectorAll('.produit-assign').forEach(function (card) {
         card.addEventListener('click', function (e) {

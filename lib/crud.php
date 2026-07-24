@@ -89,7 +89,12 @@ function crud_page(array $cfg): void
                 $codeErreur = $fichier['error'] ?? UPLOAD_ERR_NO_FILE;
                 if ($fichier && $codeErreur === UPLOAD_ERR_OK && is_uploaded_file($fichier['tmp_name'])) {
                     $erreurImg = '';
-                    $chemin = crud_televerser_image($fichier, $erreurImg);
+                    // Préfixe de nommage (ex: nom de la formule) fourni par le champ.
+                    $prefixe = '';
+                    if (isset($c['prefixe'])) {
+                        $prefixe = is_callable($c['prefixe']) ? (string) ($c['prefixe'])($_POST) : (string) $c['prefixe'];
+                    }
+                    $chemin = crud_televerser_image($fichier, $erreurImg, $prefixe);
                     if ($chemin !== null) {
                         $courant = $chemin;
                     } else {
@@ -310,7 +315,7 @@ JS;
  * (ex : "uploads/1737-plan.jpg"), ou null en cas d'échec ($erreur est alors
  * renseigné avec un message explicite).
  */
-function crud_televerser_image(array $fichier, string &$erreur = ''): ?string
+function crud_televerser_image(array $fichier, string &$erreur = '', string $prefixe = ''): ?string
 {
     $extensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'];
     $ext = strtolower(pathinfo($fichier['name'], PATHINFO_EXTENSION));
@@ -328,8 +333,10 @@ function crud_televerser_image(array $fichier, string &$erreur = ''): ?string
                 . 'Créez-le à la racine du site et donnez-lui les droits d\'écriture (chmod 755 ou 775).';
         return null;
     }
-    $base = preg_replace('/[^A-Za-z0-9._-]/', '_', pathinfo($fichier['name'], PATHINFO_FILENAME));
-    $nomFichier = time() . '-' . substr($base, 0, 60) . '.' . $ext;
+    // Nom de fichier : [préfixe (ex: formule-elegance)-]<nom-original>-<horodatage>.<ext>
+    $base = slug(pathinfo($fichier['name'], PATHINFO_FILENAME));
+    $prefixe = $prefixe !== '' ? slug($prefixe) . '-' : '';
+    $nomFichier = $prefixe . substr($base, 0, 50) . '-' . time() . '.' . $ext;
     if (!move_uploaded_file($fichier['tmp_name'], $reel . '/' . $nomFichier)) {
         $erreur = 'Impossible d\'enregistrer l\'image dans « ' . $dossier . ' » (droits d\'écriture ?).';
         return null;
