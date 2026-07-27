@@ -57,20 +57,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $type = $_POST['type_piece'] ?? 'autre';
     $etage = trim($_POST['etage'] ?? '');
     $description = trim($_POST['description'] ?? '');
+    $dimensions = trim($_POST['dimensions'] ?? '');
     $ordre = (int) ($_POST['ordre_affichage'] ?? 0);
     if (!isset($typesPiece[$type])) {
         $type = 'autre';
     }
     if ($nom === '') {
         flash('Le nom de la pièce est obligatoire.', 'erreur');
-    } elseif ($id) {
-        db()->prepare('UPDATE pieces_plan SET nom = ?, type_piece = ?, etage = ?, description = ?, ordre_affichage = ? WHERE id = ? AND plan_id = ?')
-            ->execute([$nom, $type, ($etage ?: null), ($description ?: null), $ordre, $id, $planId]);
+        redirect($base . '/admin/crud/pieces.php?plan=' . $planId);
+    }
+    if ($id) {
+        db()->prepare('UPDATE pieces_plan SET nom = ?, type_piece = ?, etage = ?, description = ?, dimensions = ?, ordre_affichage = ? WHERE id = ? AND plan_id = ?')
+            ->execute([$nom, $type, ($etage ?: null), ($description ?: null), ($dimensions ?: null), $ordre, $id, $planId]);
         flash('Pièce modifiée.');
     } else {
-        db()->prepare('INSERT INTO pieces_plan (plan_id, nom, type_piece, etage, description, ordre_affichage) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute([$planId, $nom, $type, ($etage ?: null), ($description ?: null), $ordre]);
+        db()->prepare('INSERT INTO pieces_plan (plan_id, nom, type_piece, etage, description, dimensions, ordre_affichage) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute([$planId, $nom, $type, ($etage ?: null), ($description ?: null), ($dimensions ?: null), $ordre]);
+        $id = (int) db()->lastInsertId();
         flash('Pièce ajoutée.');
+    }
+    // Caractéristiques de la pièce (remplacement complet).
+    db()->prepare('DELETE FROM piece_caracteristiques WHERE piece_id = ?')->execute([$id]);
+    $cnoms = (array) ($_POST['carac_nom'] ?? []);
+    $cvals = (array) ($_POST['carac_val'] ?? []);
+    $insC = db()->prepare('INSERT INTO piece_caracteristiques (piece_id, nom, valeur) VALUES (?, ?, ?)');
+    foreach ($cnoms as $i => $cn) {
+        $cn = trim((string) $cn);
+        if ($cn !== '') {
+            $insC->execute([$id, $cn, trim((string) ($cvals[$i] ?? ''))]);
+        }
     }
     redirect($base . '/admin/crud/pieces.php?plan=' . $planId);
 }
@@ -154,6 +169,24 @@ layout_admin_debut('Pièces — ' . $plan['nom'], 'plans');
                 </select></label>
             <label class="form-field"><span>Description (pour situer la pièce)</span>
                 <textarea name="description" rows="2" placeholder="Ex : la chambre près du salon"><?= h($edit['description'] ?? '') ?></textarea></label>
+            <label class="form-field"><span>Dimensions</span>
+                <input type="text" name="dimensions" value="<?= h($edit['dimensions'] ?? '') ?>" placeholder="Ex : 4m x 3.5m"></label>
+            <?php
+            $caracs = $edit ? piece_caracteristiques((int) $edit['id']) : [];
+            $cs = $caracs ?: [['nom' => '', 'valeur' => '']];
+            ?>
+            <div class="champs-perso">
+                <p class="champs-perso-titre">Caractéristiques</p>
+                <div id="pcarac-liste">
+                    <?php foreach ($cs as $c): ?>
+                        <div class="repeat-row repeat-duo">
+                            <input type="text" name="carac_nom[]" value="<?= h($c['nom']) ?>" placeholder="Caractéristique (ex : Exposition)">
+                            <input type="text" name="carac_val[]" value="<?= h($c['valeur']) ?>" placeholder="Valeur (ex : Sud)">
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" class="btn-line" onclick="var d=document.createElement('div');d.className='repeat-row repeat-duo';d.innerHTML='<input type=\'text\' name=\'carac_nom[]\' placeholder=\'Caractéristique\'><input type=\'text\' name=\'carac_val[]\' placeholder=\'Valeur\'>';document.getElementById('pcarac-liste').appendChild(d);">+ Ajouter une caractéristique</button>
+            </div>
             <label class="form-field"><span>Ordre d'affichage</span>
                 <input type="number" step="1" name="ordre_affichage" value="<?= h($edit['ordre_affichage'] ?? 0) ?>"></label>
             <div class="crud-form-actions">
