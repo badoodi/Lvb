@@ -873,3 +873,25 @@ img{ max-width:100%; display:block; }
 .detail-puces{ list-style:disc; padding-left:20px; color:var(--ink); font-size:.9rem; }
 .detail-puces li{ padding:2px 0; }
 @media(max-width:760px){ .produit-detail{ grid-template-columns:1fr; } }
+
+/* ---------- fond villa : page de connexion ---------- */
+.auth{
+  background:
+    linear-gradient(rgba(242,245,252,.82), rgba(242,245,252,.93)),
+    url('assets/formule-2.jpg') center/cover no-repeat fixed;
+}
+
+/* ---------- bannière de bienvenue (accueil client) ---------- */
+.welcome-banner{
+  position:relative; min-height:200px; display:flex; align-items:flex-end;
+  color:#fff; overflow:hidden;
+  background: #16244f url('assets/formule-1.jpg') center 40%/cover no-repeat;
+}
+.welcome-banner::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(80deg, rgba(6,12,32,.78) 0%, rgba(6,12,32,.4) 50%, rgba(6,12,32,.12) 100%);
+}
+.welcome-inner{ position:relative; z-index:2; width:100%; max-width:1180px; margin:0 auto; padding:44px 32px 34px; }
+.welcome-eyebrow{ font-size:.74rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.85); margin-bottom:10px; }
+.welcome-inner h1{ font-family:var(--font-display); font-weight:600; font-size:clamp(1.7rem,3vw,2.5rem); text-shadow:0 2px 18px rgba(6,12,32,.4); }
+.welcome-inner h1 em{ font-style:normal; color:#B9CDF3; }

@@ -47,6 +47,12 @@ $libelleStatut = [
 
 layout_client_debut('Mes plans');
 ?>
+<section class="welcome-banner">
+    <div class="welcome-inner">
+        <div class="welcome-eyebrow">Espace client</div>
+        <h1>Bienvenue <em><?= h($client['nom'] ?? $client['identifiant']) ?></em></h1>
+    </div>
+</section>
 <section class="client-page wrap">
 
     <?php if ($projets): ?>
