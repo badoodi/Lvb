@@ -137,9 +137,11 @@ function charger_selections(int $configId): array
 /* --- Rendu d'une carte produit (catégorie « par pièce ») --- */
 function carte_assign(array $ch, int $catId, array $etages, array $selCat): string
 {
+    global $configId;
     $prod = $ch['prod'];
     $pid = (int) $prod['id'];
     $img = !empty($prod['image']) ? (base_url() . '/' . ltrim($prod['image'], '/')) : '';
+    $urlVoir = base_url() . '/client/produit.php?produit=' . $pid . '&config=' . (int) $configId;
     ob_start(); ?>
     <div class="produit-card produit-assign" data-cat="<?= $catId ?>" data-product="<?= $pid ?>" role="button" tabindex="0">
         <div class="produit-img<?= $img ? '' : ' produit-img-vide' ?>"<?= $img ? ' style="background-image:url(\'' . h($img) . '\')"' : '' ?>>
@@ -149,7 +151,10 @@ function carte_assign(array $ch, int $catId, array $etages, array $selCat): stri
         <div class="produit-body">
             <div class="produit-nom"><?= h($prod['nom']) ?></div>
             <?php if (!empty($prod['description'])): ?><div class="produit-desc"><?= h($prod['description']) ?></div><?php endif; ?>
-            <div class="produit-choisir">Choisir des pièces ▾</div>
+            <div class="produit-actions">
+                <span class="btn-choisir-p">Choisir</span>
+                <a class="btn-voir-p" href="<?= h($urlVoir) ?>" onclick="event.stopPropagation()">Voir +</a>
+            </div>
         </div>
         <div class="piece-menu" hidden>
             <div class="piece-menu-head">Affecter « <?= h($prod['nom']) ?> » à&nbsp;:</div>
@@ -176,9 +181,11 @@ function carte_assign(array $ch, int $catId, array $etages, array $selCat): stri
 /* --- Rendu d'une carte produit (catégorie « toute la villa », choix radio) --- */
 function carte_choix(array $ch, string $groupe, int $selPiece, bool $modifiable): string
 {
+    global $configId;
     $prod = $ch['prod'];
     $pid = (int) $prod['id'];
     $img = !empty($prod['image']) ? (base_url() . '/' . ltrim($prod['image'], '/')) : '';
+    $urlVoir = base_url() . '/client/produit.php?produit=' . $pid . '&config=' . (int) $configId;
     ob_start(); ?>
     <label class="produit-card produit-choix">
         <input type="radio" class="produit-radio" name="<?= h($groupe) ?>" value="<?= $pid ?>" <?= $selPiece === $pid ? 'checked' : '' ?> <?= $modifiable ? '' : 'disabled' ?>>
@@ -189,6 +196,10 @@ function carte_choix(array $ch, string $groupe, int $selPiece, bool $modifiable)
         <div class="produit-body">
             <div class="produit-nom"><?= h($prod['nom']) ?></div>
             <?php if (!empty($prod['description'])): ?><div class="produit-desc"><?= h($prod['description']) ?></div><?php endif; ?>
+            <div class="produit-actions">
+                <span class="btn-choisir-p">Choisir</span>
+                <a class="btn-voir-p" href="<?= h($urlVoir) ?>" onclick="event.stopPropagation()">Voir +</a>
+            </div>
         </div>
     </label>
     <?php return ob_get_clean();
@@ -444,7 +455,7 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
                     Documents techniques
                 </a>
             <?php endif; ?>
-            <a class="back-link" href="<?= h($base) ?>/client/index.php">← Mes projets</a>
+            <a class="back-link" href="index.php">← Mes projets</a>
         </aside>
     </form>
 </div>

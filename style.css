@@ -849,3 +849,27 @@ img{ max-width:100%; display:block; }
 .repeat-row{ margin-bottom:8px; }
 .repeat-duo{ display:flex; gap:10px; }
 .repeat-duo input{ flex:1; }
+
+/* ---------- boutons Choisir / Voir+ sur les cartes produit ---------- */
+.produit-actions{ display:flex; gap:8px; margin-top:10px; }
+.btn-choisir-p{ flex:1; text-align:center; background:var(--blueprint); color:#fff; border-radius:var(--radius-pill); padding:8px 10px; font-size:.8rem; font-weight:600; cursor:pointer; transition:background .15s; }
+.btn-choisir-p:hover{ background:#111e73; }
+.btn-voir-p{ text-align:center; border:1px solid var(--line); border-radius:var(--radius-pill); padding:8px 12px; font-size:.8rem; font-weight:600; color:var(--blueprint); }
+.btn-voir-p:hover{ background:var(--blueprint-soft); border-color:var(--blueprint); }
+
+/* ---------- fiche détail produit (Voir+) ---------- */
+.produit-detail{ display:grid; grid-template-columns:1fr 1.2fr; gap:32px; align-items:start; background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-sm); margin-top:8px; }
+.produit-detail-media img{ width:100%; border-radius:var(--radius); object-fit:cover; aspect-ratio:1/1; }
+.produit-detail-vide{ aspect-ratio:1/1; display:grid; place-items:center; font-size:5rem; color:var(--blueprint); background:linear-gradient(135deg,var(--blueprint-soft),#EEF2FC); border-radius:var(--radius); }
+.produit-detail-infos h1{ font-family:var(--font-display); font-weight:600; font-size:1.8rem; margin:12px 0 4px; }
+.produit-detail-cat{ color:var(--ink-soft); font-size:.85rem; }
+.produit-detail-prix{ font-family:var(--font-display); font-weight:700; font-size:1.6rem; color:var(--blueprint); margin:10px 0; }
+.produit-detail-desc{ color:var(--ink-soft); margin-bottom:16px; }
+.detail-bloc{ margin:18px 0; border-top:1px solid var(--line); padding-top:16px; }
+.detail-bloc h3{ font-family:var(--font-display); font-size:1rem; margin-bottom:10px; }
+.couleur-liste{ display:flex; flex-wrap:wrap; gap:14px; }
+.couleur-item{ display:inline-flex; align-items:center; gap:7px; font-size:.85rem; }
+.couleur-item .pastille{ width:24px; height:24px; border-radius:50%; border:2px solid var(--line); }
+.detail-puces{ list-style:disc; padding-left:20px; color:var(--ink); font-size:.9rem; }
+.detail-puces li{ padding:2px 0; }
+@media(max-width:760px){ .produit-detail{ grid-template-columns:1fr; } }
