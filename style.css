@@ -837,3 +837,15 @@ img{ max-width:100%; display:block; }
   margin-bottom:14px; display:flex; align-items:center; gap:8px;
 }
 .upgrade-titre::before{ content:"★"; color:var(--brass); }
+
+/* ---------- coloris (pastilles) & lignes répétables (admin) ---------- */
+.palette-choix{ display:flex; flex-wrap:wrap; gap:12px; }
+.pastille-couleur{ display:inline-flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; width:64px; }
+.pastille-couleur input{ position:absolute; opacity:0; width:0; height:0; }
+.pastille{ width:34px; height:34px; border-radius:50%; border:2px solid var(--line); box-shadow:inset 0 0 0 2px #fff; transition:transform .12s, border-color .12s; }
+.pastille-couleur:hover .pastille{ transform:scale(1.08); }
+.pastille-couleur input:checked + .pastille{ border-color:var(--blueprint); box-shadow:inset 0 0 0 2px #fff, 0 0 0 2px var(--blueprint); }
+.pastille-nom{ font-size:.68rem; color:var(--ink-soft); text-transform:capitalize; }
+.repeat-row{ margin-bottom:8px; }
+.repeat-duo{ display:flex; gap:10px; }
+.repeat-duo input{ flex:1; }

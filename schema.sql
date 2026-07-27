@@ -112,8 +112,18 @@ CREATE TABLE pieces_plan (
     type_piece      ENUM('chambre','cuisine','salon','salle_de_bain','globale','autre') NOT NULL DEFAULT 'autre',
     etage           VARCHAR(80)  NULL,              -- ex : "Rez-de-chaussée", "Étage 1" (regroupement dans l'accordéon client)
     description     VARCHAR(255) NULL,              -- ex : "La chambre près du salon" — pour situer précisément la pièce
+    dimensions      VARCHAR(150) NULL,              -- ex : "4m x 3.5m"
     ordre_affichage INT NOT NULL DEFAULT 0,
     CONSTRAINT fk_piece_plan FOREIGN KEY (plan_id) REFERENCES plans_villa(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Caractéristiques libres d'une pièce
+CREATE TABLE piece_caracteristiques (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    piece_id    INT UNSIGNED NOT NULL,
+    nom         VARCHAR(150) NOT NULL,
+    valeur      VARCHAR(255) NULL,
+    CONSTRAINT fk_pccar_piece FOREIGN KEY (piece_id) REFERENCES pieces_plan(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- Documents techniques du plan (plan électrique, plan de plomberie, et tout futur
@@ -199,15 +209,25 @@ CREATE TABLE produits (
     nom                 VARCHAR(150) NOT NULL,
     description         TEXT NULL,
     prix                DECIMAL(12,2) NOT NULL DEFAULT 0,
-    couleurs            VARCHAR(255) NULL,           -- liste séparée par virgules, ex: "Blanc,Gris,Sable"
+    couleurs            VARCHAR(255) NULL,           -- coloris disponibles : liste séparée par virgules (jetons de palette)
     reference           VARCHAR(100) NOT NULL UNIQUE, -- code produit (SKU), différent du numéro
-    dimensions          VARCHAR(100) NULL,
+    fournisseur         VARCHAR(150) NULL,
+    dimensions          TEXT NULL,                    -- dimensions disponibles : une par ligne
     disponible          TINYINT(1) NOT NULL DEFAULT 1,
     image               VARCHAR(255) NULL,
     date_creation       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_produit_cp      FOREIGN KEY (categorie_produit_id) REFERENCES categories_produits(id) ON DELETE CASCADE,
     CONSTRAINT fk_produit_formule FOREIGN KEY (formule_id) REFERENCES formules(id) ON DELETE RESTRICT,
     INDEX idx_produits_cp_formule (categorie_produit_id, formule_id)
+) ENGINE=InnoDB;
+
+-- Caractéristiques libres d'un produit (ex : Matériaux = Marbre)
+CREATE TABLE produit_caracteristiques (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    produit_id  INT UNSIGNED NOT NULL,
+    nom         VARCHAR(150) NOT NULL,
+    valeur      VARCHAR(255) NULL,
+    CONSTRAINT fk_pcar_produit FOREIGN KEY (produit_id) REFERENCES produits(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- =========================================================
@@ -278,6 +298,8 @@ CREATE TABLE configuration_produits (
     categorie_produit_id  INT UNSIGNED NOT NULL,
     piece_id              INT UNSIGNED NOT NULL,
     produit_id            INT UNSIGNED NOT NULL,
+    couleur               VARCHAR(60)  NULL,          -- coloris retenu par le client
+    dimension             VARCHAR(150) NULL,          -- dimension retenue par le client
     prix_applique         DECIMAL(12,2) NOT NULL,     -- prix du produit choisi
     supplement            DECIMAL(12,2) NOT NULL DEFAULT 0,  -- écart vs le produit de la formule de base
     date_ajout            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

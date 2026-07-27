@@ -65,6 +65,44 @@ function euros($montant): string
     return number_format((float) $montant, 2, ',', ' ') . ' €';
 }
 
+/** Palette de coloris disponibles : [jeton => couleur CSS]. */
+function palette_couleurs(): array
+{
+    return [
+        'noir' => '#1C1C1C', 'blanc' => '#FFFFFF', 'gris' => '#9AA0A6', 'anthracite' => '#3A3F44',
+        'beige' => '#E4D6B8', 'sable' => '#D8C79E', 'marron' => '#7A4E2D', 'taupe' => '#8B7E6A',
+        'rouge' => '#C0392B', 'bordeaux' => '#7B1E2B', 'orange' => '#E67E22', 'jaune' => '#F1C40F',
+        'vert' => '#27AE60', 'bleu' => '#2E5E8C', 'turquoise' => '#1ABC9C',
+    ];
+}
+
+/** Couleur CSS d'un jeton de la palette (gère aussi une valeur hex libre). */
+function couleur_css(string $jeton): string
+{
+    $p = palette_couleurs();
+    $k = strtolower(trim($jeton));
+    if (isset($p[$k])) {
+        return $p[$k];
+    }
+    return preg_match('/^#?[0-9a-fA-F]{3,8}$/', $jeton) ? (str_starts_with($jeton, '#') ? $jeton : '#' . $jeton) : '#CCCCCC';
+}
+
+/** Caractéristiques d'un produit : [['nom'=>, 'valeur'=>], ...]. */
+function produit_caracteristiques(int $produitId): array
+{
+    $stmt = db()->prepare('SELECT nom, valeur FROM produit_caracteristiques WHERE produit_id = ? ORDER BY id');
+    $stmt->execute([$produitId]);
+    return $stmt->fetchAll();
+}
+
+/** Caractéristiques d'une pièce. */
+function piece_caracteristiques(int $pieceId): array
+{
+    $stmt = db()->prepare('SELECT nom, valeur FROM piece_caracteristiques WHERE piece_id = ? ORDER BY id');
+    $stmt->execute([$pieceId]);
+    return $stmt->fetchAll();
+}
+
 /** Transforme un texte en identifiant URL/fichier : minuscules, sans accents. */
 function slug(string $texte): string
 {
