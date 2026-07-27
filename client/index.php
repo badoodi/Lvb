@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'annul
 
 // Projets (configurations) déjà démarrés par ce client (hors annulées).
 $stmt = db()->prepare(
-    'SELECT c.*, p.nom AS plan_nom, f.nom AS formule_nom
+    'SELECT c.*, p.nom AS plan_nom, p.image AS plan_image, f.nom AS formule_nom, f.niveau AS formule_niveau
      FROM configurations c
      JOIN plans_villa p ON p.id = c.plan_id
      JOIN formules f    ON f.id = c.formule_id
@@ -62,15 +62,27 @@ layout_client_debut('Mes plans');
     </div>
     <div class="projet-list">
         <?php foreach ($projets as $pr): ?>
-            <div class="projet-card">
-                <div class="projet-meta">
-                    <span class="badge badge-<?= h($pr['statut']) ?>"><?= h($libelleStatut[$pr['statut']]) ?></span>
-                    <span class="projet-date">Créé le <?= h(date('d/m/Y', strtotime($pr['date_creation']))) ?></span>
-                </div>
-                <h3><?= h($pr['plan_nom']) ?></h3>
-                <p class="projet-formule">Formule <strong><?= h($pr['formule_nom']) ?></strong></p>
-                <p class="projet-prix"><?= euros($pr['prix_total']) ?></p>
-                <div class="projet-actions">
+            <?php
+            $niveau = (int) $pr['formule_niveau'];
+            $villaImg = $base . '/assets/formule-' . (in_array($niveau, [1, 2, 3], true) ? $niveau : 1) . '.jpg';
+            $planImg = !empty($pr['plan_image']) ? ($base . '/' . ltrim($pr['plan_image'], '/')) : '';
+            $pct = progression_configuration((int) $pr['id'], (int) $pr['plan_id'], (int) $pr['formule_id'], $pr['statut']);
+            ?>
+            <div class="projet-card projet-card-wide">
+                <div class="projet-villa" style="background-image:url('<?= h($villaImg) ?>')"></div>
+                <div class="projet-milieu">
+                    <div class="projet-meta">
+                        <span class="badge badge-<?= h($pr['statut']) ?>"><?= h($libelleStatut[$pr['statut']]) ?></span>
+                        <span class="projet-date">Créé le <?= h(date('d/m/Y', strtotime($pr['date_creation']))) ?></span>
+                    </div>
+                    <h3><?= h($pr['plan_nom']) ?></h3>
+                    <p class="projet-formule">Collection <strong><?= h($pr['formule_nom']) ?></strong></p>
+                    <p class="projet-prix"><?= euros($pr['prix_total']) ?></p>
+                    <div class="projet-progress">
+                        <div class="progress-head"><span>Avancement de la configuration</span><span><?= $pct ?>%</span></div>
+                        <div class="progress-bar"><span style="width:<?= $pct ?>%"></span></div>
+                    </div>
+                    <div class="projet-actions">
                     <?php if ($pr['statut'] === 'en_cours'): ?>
                         <a class="btn-line" href="<?= h($base) ?>/client/config.php?config=<?= (int) $pr['id'] ?>">
                             Continuer la configuration →
@@ -97,6 +109,15 @@ layout_client_debut('Mes plans');
                             <input type="hidden" name="config_id" value="<?= (int) $pr['id'] ?>">
                             <button type="submit" class="btn-line btn-danger btn-full">Supprimer cette configuration</button>
                         </form>
+                    <?php endif; ?>
+                    </div>
+                </div>
+                <div class="projet-plan">
+                    <span class="projet-plan-lbl">Plan de la villa</span>
+                    <?php if ($planImg): ?>
+                        <img src="<?= h($planImg) ?>" alt="Plan <?= h($pr['plan_nom']) ?>">
+                    <?php else: ?>
+                        <div class="projet-plan-vide">⌂</div>
                     <?php endif; ?>
                 </div>
             </div>

@@ -895,3 +895,21 @@ img{ max-width:100%; display:block; }
 .welcome-eyebrow{ font-size:.74rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.85); margin-bottom:10px; }
 .welcome-inner h1{ font-family:var(--font-display); font-weight:600; font-size:clamp(1.7rem,3vw,2.5rem); text-shadow:0 2px 18px rgba(6,12,32,.4); }
 .welcome-inner h1 em{ font-style:normal; color:#B9CDF3; }
+
+/* ---------- carte projet redessinée (villa | texte | plan) ---------- */
+.projet-list{ display:flex; flex-direction:column; gap:18px; }
+.projet-card-wide{ display:grid; grid-template-columns:210px 1fr 240px; padding:0; overflow:hidden; }
+.projet-villa{ background:#16244f center/cover no-repeat; min-height:210px; }
+.projet-milieu{ padding:22px 24px; min-width:0; }
+.projet-milieu h3{ font-family:var(--font-display); font-weight:600; font-size:1.3rem; margin-bottom:4px; }
+.projet-plan{ padding:18px; border-left:1px solid var(--line); display:flex; flex-direction:column; gap:8px; background:#FAFBFF; }
+.projet-plan-lbl{ font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); font-weight:600; }
+.projet-plan img{ width:100%; border-radius:var(--radius-sm); object-fit:cover; max-height:170px; }
+.projet-plan-vide{ aspect-ratio:4/3; display:grid; place-items:center; font-size:2.5rem; color:var(--blueprint); background:linear-gradient(135deg,var(--blueprint-soft),#EEF2FC); border-radius:var(--radius-sm); }
+.projet-progress{ margin:12px 0 16px; }
+.progress-head{ display:flex; justify-content:space-between; font-size:.76rem; color:var(--ink-soft); margin-bottom:6px; font-weight:600; }
+.progress-bar{ height:8px; background:var(--blueprint-soft); border-radius:999px; overflow:hidden; }
+.progress-bar span{ display:block; height:100%; background:linear-gradient(90deg,var(--blueprint),#3D63C9); border-radius:999px; transition:width .3s; }
+.projet-actions{ display:flex; flex-wrap:wrap; gap:8px; }
+.projet-actions form{ margin:0; }
+@media(max-width:760px){ .projet-card-wide{ grid-template-columns:1fr; } .projet-villa{ min-height:130px; } .projet-plan{ border-left:none; border-top:1px solid var(--line); } }

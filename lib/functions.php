@@ -103,6 +103,41 @@ function piece_caracteristiques(int $pieceId): array
     return $stmt->fetchAll();
 }
 
+/** Pourcentage d'avancement d'une configuration (0-100). */
+function progression_configuration(int $configId, int $planId, int $formuleId, string $statut): int
+{
+    if (in_array($statut, ['en_attente', 'validee'], true)) {
+        return 100;
+    }
+    // Nombre de pièces réelles du plan.
+    $q = db()->prepare("SELECT COUNT(*) FROM pieces_plan WHERE plan_id = ? AND type_piece <> 'globale'");
+    $q->execute([$planId]);
+    $nbPieces = (int) $q->fetchColumn();
+
+    // Catégories applicables à la collection ET disposant d'au moins un produit.
+    $q = db()->prepare(
+        'SELECT cp.par_piece
+         FROM categories_produits cp
+         JOIN grande_categorie_formule gcf
+              ON gcf.grande_categorie_id = cp.grande_categorie_id AND gcf.formule_id = ?
+         WHERE EXISTS (SELECT 1 FROM produits p
+                       WHERE p.categorie_produit_id = cp.id AND p.formule_id = ? AND p.disponible = 1)'
+    );
+    $q->execute([$formuleId, $formuleId]);
+    $total = 0;
+    foreach ($q as $r) {
+        $total += ((int) $r['par_piece'] === 1) ? max(1, $nbPieces) : 1;
+    }
+    if ($total === 0) {
+        return 0;
+    }
+    $q = db()->prepare('SELECT COUNT(*) FROM configuration_produits WHERE configuration_id = ?');
+    $q->execute([$configId]);
+    $filled = (int) $q->fetchColumn();
+
+    return max(0, min(100, (int) round($filled / $total * 100)));
+}
+
 /** Transforme un texte en identifiant URL/fichier : minuscules, sans accents. */
 function slug(string $texte): string
 {
