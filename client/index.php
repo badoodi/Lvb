@@ -131,7 +131,7 @@ layout_client_debut('Mes plans');
     </div>
     <p class="section-intro">
         <strong>Étape 1 — choisissez le plan de votre villa</strong> parmi ceux proposés ci-dessous.
-        Vous sélectionnerez ensuite votre formule, puis vous configurerez chaque pièce
+        Vous sélectionnerez ensuite votre collection, puis vous configurerez chaque pièce
         (matériaux, climatisation, carrelage…) pour composer votre villa sur-mesure.
     </p>
 

@@ -55,7 +55,7 @@ function rendre_connexion(?string $erreur = null, string $contexte = ''): void
             <div class="auth-intro">
                 <div class="hero-eyebrow">Espace privé</div>
                 <h1>Votre villa,<br><em>dessinée avec vous.</em></h1>
-                <p>Connectez-vous pour choisir votre plan, votre formule et configurer chaque
+                <p>Connectez-vous pour choisir votre plan, votre collection et configurer chaque
                    pièce de votre future villa. Administrateurs et clients utilisent la même entrée.</p>
                 <div class="auth-note">
                     Nouveau client&nbsp;? Activez votre compte avec votre
@@ -150,7 +150,7 @@ function layout_admin_debut(string $titre, string $actif = ''): void
         ''                   => ['index.php',               'Vue globale'],
         'commandes'          => ['commandes.php',           'Commandes'],
         'plans'              => ['crud/plans.php',          'Plans de villa'],
-        'formules'           => ['crud/formules.php',       'Formules'],
+        'formules'           => ['crud/formules.php',       'Collections'],
         'grandes_categories' => ['crud/grandes_categories.php', 'Grandes catégories'],
         'categories'         => ['crud/categories.php',     'Catégories produits'],
         'produits'           => ['crud/produits.php',       'Produits'],
@@ -205,7 +205,10 @@ function layout_fin(): void
     ?>
     <footer class="site-footer">
         <span>© <?= date('Y') ?> Les Villas Blanches — <?= h(config('sous_marque')) ?></span>
-        <span>Atelier d'architecture</span>
+        <a class="footer-credit" href="https://missalpro.com" target="_blank" rel="noopener">
+            <span>design by</span>
+            <img src="<?= base_url() ?>/assets/missal.png" alt="Missal" class="footer-missal">
+        </a>
     </footer>
     </body></html>
     <?php

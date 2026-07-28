@@ -97,7 +97,7 @@ function notifier_admin_validation(int $configId, string $pdfBytes): bool
     $texte = "Bonjour,\n\n"
         . "Le client « {$c['client_nom']} » vient de valider sa configuration :\n"
         . "- Plan : {$c['plan_nom']}\n"
-        . "- Formule : {$c['formule_nom']}\n"
+        . "- Collection : {$c['formule_nom']}\n"
         . "- Total estimé : " . number_format((float) $c['prix_total'], 2, ',', ' ') . " EUR\n\n"
         . "Le récapitulatif détaillé est en pièce jointe (PDF).\n"
         . "Connectez-vous au tableau de bord pour valider la commande.\n\n"

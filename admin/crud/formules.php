@@ -4,8 +4,8 @@ require_once __DIR__ . '/../../lib/crud.php';
 crud_page([
     'table'         => 'formules',
     'menu'          => 'formules',
-    'titre'         => 'Formules',
-    'singulier'     => 'une formule',
+    'titre'         => 'Collections',
+    'singulier'     => 'une collection',
     'entite_champs' => 'formule',
     'bouton_champ'  => true,
     'tri'           => 'niveau',

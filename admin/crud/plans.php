@@ -14,7 +14,7 @@ function plan_extra_form(?array $ligne): string
             $prix[(int) $r['formule_id']] = $r['prix_base'];
         }
     }
-    $html = '<div class="champs-perso"><p class="champs-perso-titre">Prix de base par formule</p>';
+    $html = '<div class="champs-perso"><p class="champs-perso-titre">Prix de base par collection</p>';
     foreach ($formules as $f) {
         $v = $prix[(int) $f['id']] ?? '';
         $html .= '<label class="form-field"><span>' . h($f['nom']) . ' (€)</span>'

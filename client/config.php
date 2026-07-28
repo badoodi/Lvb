@@ -292,7 +292,7 @@ function bloc_upgrades(string $cartesHtml, string $nomFormuleSup, bool $ouvert):
             <span class="vo-plus">＋ Voir d'autres options</span><span class="vo-moins">－ Masquer les options</span>
         </button>
         <div class="upgrade-panel"<?= $ouvert ? '' : ' hidden' ?>>
-            <div class="upgrade-titre">Options de la formule <?= h($nomFormuleSup) ?></div>
+            <div class="upgrade-titre">Options de la collection <?= h($nomFormuleSup) ?></div>
             <div class="produit-liste"><?= $cartesHtml ?></div>
         </div>
     </div>
@@ -468,7 +468,7 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
     <div class="banner-sheen"></div>
     <div class="banner-overlay wrap">
         <div class="formule-badge"><span class="formule-badge-ic">✓</span> <?= h($config['plan_nom']) ?> · <?= h(ucfirst(str_replace('_', ' ', $config['statut']))) ?></div>
-        <h1>Vous avez choisi la formule <em><?= h($config['formule_nom']) ?></em></h1>
+        <h1>Vous avez choisi la collection <em><?= h($config['formule_nom']) ?></em></h1>
     </div>
 </section>
 
@@ -519,7 +519,7 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
                             </div>
 
                             <?php if (!$produitsChoix): ?>
-                                <p class="vide">Aucun produit disponible pour cette formule.</p>
+                                <p class="vide">Aucun produit disponible pour cette collection.</p>
 
                             <?php elseif ($estParPiece): ?>
                                 <?php

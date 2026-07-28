@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     if (!$ok) {
-        flash('Formule invalide.', 'erreur');
+        flash('Collection invalide.', 'erreur');
         redirect($base . '/client/formule.php?plan=' . $planId);
     }
 
@@ -71,17 +71,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Classe de style par niveau.
 $classeNiveau = [1 => 'selenite', 2 => '', 3 => 'signature'];
 
-layout_client_debut('Choisir une formule');
+layout_client_debut('Choisir une collection');
 ?>
 <section class="client-page wrap">
     <a class="back-link" href="<?= h($base) ?>/client/index.php">← Retour aux plans</a>
     <div class="section-head">
-        <h2>Plan <?= h($plan['nom']) ?> — choisissez votre formule</h2>
-        <span class="count"><?= count($formules) ?> formule(s)</span>
+        <h2>Plan <?= h($plan['nom']) ?> — choisissez votre collection</h2>
+        <span class="count"><?= count($formules) ?> collection(s)</span>
     </div>
 
     <?php if (!$formules): ?>
-        <p class="vide">Aucune formule n'est configurée pour ce plan.</p>
+        <p class="vide">Aucune collection n'est configurée pour ce plan.</p>
     <?php else: ?>
     <form method="post" class="formule-grid">
         <?= csrf_input() ?>
@@ -91,7 +91,7 @@ layout_client_debut('Choisir une formule');
                 <div class="formule-sheen"></div>
                 <div class="formule-overlay">
                     <div class="formule-badge">
-                        <span class="formule-badge-ic">✓</span> Formule niveau <?= (int) $f['niveau'] ?>
+                        <span class="formule-badge-ic">✓</span> Collection niveau <?= (int) $f['niveau'] ?>
                     </div>
                     <div class="formule-name"><?= h($f['nom']) ?></div>
                     <p class="formule-desc"><?= h($f['description']) ?></p>

@@ -8,7 +8,7 @@
 require_once __DIR__ . '/../../lib/crud.php';
 
 $typesEntite = [
-    'formule'           => 'Formule',
+    'formule'           => 'Collection',
     'grande_categorie'  => 'Grande catégorie',
     'categorie_produit' => 'Catégorie produit',
     'produit'           => 'Produit',

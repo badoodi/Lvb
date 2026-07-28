@@ -11,7 +11,7 @@ function grande_cat_checklist(?array $ligne): string
         $stmt->execute([(int) $ligne['id']]);
         $coches = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
-    $html = '<div class="champs-perso"><p class="champs-perso-titre">Formules concernées</p>';
+    $html = '<div class="champs-perso"><p class="champs-perso-titre">Collections concernées</p>';
     foreach ($formules as $f) {
         $c = in_array((int) $f['id'], $coches, true) ? ' checked' : '';
         $html .= '<label class="check-inline"><input type="checkbox" name="formules[]" value="' . (int) $f['id'] . '"' . $c . '> ' . h($f['nom']) . '</label>';

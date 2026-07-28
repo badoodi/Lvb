@@ -415,9 +415,15 @@ img{ max-width:100%; display:block; }
 /* ---------- pied de page ---------- */
 .site-footer{
   border-top:1px solid var(--line); background: var(--white);
-  padding:22px 40px; display:flex; justify-content:space-between;
+  padding:22px 40px; display:flex; justify-content:space-between; align-items:center;
   font-size:.78rem; color: var(--ink-soft);
 }
+.footer-credit{
+  display:inline-flex; align-items:center; gap:8px;
+  color:var(--ink-soft); text-decoration:none; transition:opacity .15s;
+}
+.footer-credit:hover{ opacity:.65; }
+.footer-missal{ height:18px; width:auto; display:block; }
 
 /* =========================================================
    ADMIN — coquille + barre latérale (claire)
@@ -849,6 +855,19 @@ img{ max-width:100%; display:block; }
 .repeat-row{ margin-bottom:8px; }
 .repeat-duo{ display:flex; gap:10px; }
 .repeat-duo input{ flex:1; }
+/* Champs texte des dimensions / caractéristiques : même style que les
+   champs de formulaire (ils sont hors de .form-field). */
+.champs-perso input[type=text]{
+  font-family: var(--font-body); font-size:.95rem;
+  padding:11px 14px; border:1px solid var(--line);
+  background: var(--white); color: var(--ink);
+  border-radius: var(--radius-sm); width:100%;
+  transition: border-color .18s, box-shadow .18s;
+}
+.champs-perso input[type=text]:focus{
+  outline:none; border-color: var(--blueprint);
+  box-shadow: 0 0 0 3px var(--blueprint-soft);
+}
 
 /* ---------- boutons Choisir / Voir+ sur les cartes produit ---------- */
 .produit-actions{ display:flex; gap:8px; margin-top:10px; }
