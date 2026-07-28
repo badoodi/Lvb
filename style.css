@@ -893,6 +893,17 @@ img{ max-width:100%; display:block; }
 .detail-puces li{ padding:2px 0; }
 @media(max-width:760px){ .produit-detail{ grid-template-columns:1fr; } }
 
+/* ---------- choix interactif sur la fiche produit ---------- */
+/* Le badge collection est conçu pour un fond sombre ; sur la fiche (fond clair)
+   on le repasse en bleu lisible. */
+.produit-detail-infos .formule-badge{
+  color:var(--blueprint); background:var(--blueprint-soft); border-color:transparent;
+}
+.detail-choix .detail-bloc:first-child{ border-top:none; padding-top:0; }
+.detail-pieces-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+.detail-pieces{ display:grid; grid-template-columns:1fr 1fr; gap:2px 14px; }
+@media(max-width:760px){ .detail-pieces{ grid-template-columns:1fr; } }
+
 /* ---------- fond villa : page de connexion ---------- */
 .auth{
   background:
@@ -961,6 +972,7 @@ img{ max-width:100%; display:block; }
 .produit-assign:has(.piece-menu:not([hidden])){ z-index:60; }
 .produit-assign .piece-menu{ left:calc(100% + 14px); right:auto; top:0; width:300px; max-height:70vh; overflow-y:auto; z-index:60; box-shadow:0 12px 40px rgba(20,38,143,.18); }
 .piece-menu-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.piece-menu-aide{ font-size:.76rem; color:var(--ink-soft); margin:2px 0 10px; font-style:italic; }
 .btn-tout{ border:1px solid var(--blueprint); background:var(--blueprint-soft); color:var(--blueprint); border-radius:var(--radius-pill); padding:4px 12px; font-size:.74rem; font-weight:700; cursor:pointer; flex-shrink:0; transition:all .14s; }
 .btn-tout:hover, .btn-tout.actif{ background:var(--blueprint); color:#fff; }
 

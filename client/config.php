@@ -224,6 +224,16 @@ function carte_assign(array $ch, int $catId, array $etages, array $selCat): stri
                 <span>Affecter « <?= h($prod['nom']) ?> » à quelles pièces&nbsp;?</span>
                 <button type="button" class="btn-tout" data-cat="<?= $catId ?>" data-product="<?= $pid ?>">Tout</button>
             </div>
+            <?php
+            $aCouleurs = trim((string) ($prod['couleurs'] ?? '')) !== '';
+            $aDims = trim((string) ($prod['dimensions'] ?? '')) !== '';
+            if ($aCouleurs || $aDims): ?>
+                <p class="piece-menu-aide">
+                    Cochez une pièce pour choisir
+                    <?= $aCouleurs && $aDims ? 'son coloris et ses dimensions'
+                        : ($aCouleurs ? 'son coloris' : 'ses dimensions') ?>.
+                </p>
+            <?php endif; ?>
             <div class="etage-accordion">
                 <?php foreach ($etages as $etNom => $piecesEt): ?>
                     <div class="etage-item">
