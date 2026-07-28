@@ -932,3 +932,5 @@ img{ max-width:100%; display:block; }
 .vm-caracs{ font-size:.82rem; color:var(--ink); line-height:1.5; padding-left:2px; }
 .vm-caracs li{ padding:1px 0; }
 .piece-menu .piece-menu-head{ margin-top:14px; }
+.variant-inline{ display:none; border-top:1px solid var(--line); margin-top:10px; padding-top:6px; }
+.produit-choix:has(.produit-radio:checked) .variant-inline{ display:block; }

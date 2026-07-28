@@ -261,6 +261,9 @@ function carte_choix(array $ch, string $groupe, int $selPiece, bool $modifiable)
                 <span class="btn-choisir-p">Choisir</span>
                 <a class="btn-voir-p" href="<?= h($urlVoir) ?>" onclick="event.stopPropagation()">Voir +</a>
             </div>
+            <?php $vh = variantes_html($prod, (int) $dCat, $pid); if ($vh !== ''): ?>
+                <div class="variant-inline" onclick="event.preventDefault()"><?= $vh ?></div>
+            <?php endif; ?>
         </div>
     </label>
     <?php return ob_get_clean();
