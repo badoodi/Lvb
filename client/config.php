@@ -240,7 +240,7 @@ function carte_assign(array $ch, int $catId, array $etages, array $selCat): stri
             <div class="etage-accordion">
                 <?php foreach ($etages as $etNom => $piecesEt): ?>
                     <div class="etage-item">
-                        <button type="button" class="etage-head"><?= h($etNom) ?><span class="chev">＋</span></button>
+                        <button type="button" class="etage-head"><?= h($etNom) ?><span class="chev">⌄</span></button>
                         <div class="etage-pieces" hidden>
                             <?php foreach ($piecesEt as $pc): $pcid = (int) $pc['id']; ?>
                                 <div class="piece-row">
