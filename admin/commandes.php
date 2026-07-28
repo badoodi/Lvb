@@ -194,7 +194,7 @@ layout_admin_debut('Commandes', 'commandes');
     <?php if (!$commandes): ?>
         <p class="vide">Aucune commande dans cette catégorie.</p>
     <?php else: ?>
-    <table class="data-table">
+    <table class="data-table table-commandes">
         <thead><tr><th>#</th><th>Client</th><th>Plan</th><th>Collection</th><th>Total</th><th>Statut</th><th></th></tr></thead>
         <tbody>
             <?php foreach ($commandes as $c): ?>

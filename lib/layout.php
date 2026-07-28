@@ -129,6 +129,9 @@ function layout_client_debut(string $titre): void
                 <div class="brand-tag"><?= h(config('sous_marque')) ?></div>
             </div>
         </a>
+        <button type="button" class="nav-toggle" aria-label="Ouvrir le menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
         <nav class="header-nav">
             <a href="<?= h($base) ?>/client/index.php">Mes plans</a>
             <a href="<?= h($base) ?>/client/documents.php">Documents</a>
@@ -181,8 +184,10 @@ function layout_admin_debut(string $titre, string $actif = ''): void
                 <a href="<?= h($base) ?>/logout.php">Déconnexion</a>
             </div>
         </aside>
+        <div class="admin-side-overlay" hidden></div>
         <main class="admin-main">
             <div class="admin-topbar">
+                <button type="button" class="admin-burger" aria-label="Ouvrir le menu">☰</button>
                 <h1><?= h($titre) ?></h1>
             </div>
             <?php layout_flashs(); ?>
@@ -196,6 +201,22 @@ function layout_admin_fin(): void
             </div>
         </main>
     </div>
+    <script>
+    (function () {
+        var b = document.querySelector('.admin-burger'),
+            side = document.querySelector('.admin-side'),
+            ov = document.querySelector('.admin-side-overlay');
+        function ferme() { document.body.classList.remove('admin-menu-ouvert'); if (ov) { ov.hidden = true; } }
+        if (b && side) {
+            b.addEventListener('click', function () {
+                var open = document.body.classList.toggle('admin-menu-ouvert');
+                if (ov) { ov.hidden = !open; }
+            });
+        }
+        if (ov) { ov.addEventListener('click', ferme); }
+        document.querySelectorAll('.admin-nav a').forEach(function (a) { a.addEventListener('click', ferme); });
+    })();
+    </script>
     </body></html>
     <?php
 }
@@ -210,6 +231,18 @@ function layout_fin(): void
             <img src="<?= base_url() ?>/assets/missal.png" alt="Missal" class="footer-missal">
         </a>
     </footer>
+    <script>
+    (function () {
+        var t = document.querySelector('.nav-toggle'), n = document.querySelector('.header-nav');
+        if (t && n) {
+            t.addEventListener('click', function () {
+                var open = n.classList.toggle('ouvert');
+                t.classList.toggle('actif', open);
+                t.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+        }
+    })();
+    </script>
     </body></html>
     <?php
 }

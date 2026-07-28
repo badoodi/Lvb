@@ -75,7 +75,7 @@ layout_admin_debut('Vue globale', '');
         <?php if (!$configs): ?>
             <p class="vide">Aucune configuration pour le moment.</p>
         <?php else: ?>
-        <table class="data-table">
+        <table class="data-table table-config">
             <thead><tr><th>Client</th><th>Plan</th><th>Collection</th><th>Options</th><th>Total</th><th>Statut</th></tr></thead>
             <tbody>
                 <?php foreach ($configs as $c): ?>
