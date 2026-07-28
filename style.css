@@ -934,3 +934,20 @@ img{ max-width:100%; display:block; }
 .piece-menu .piece-menu-head{ margin-top:14px; }
 .variant-inline{ display:none; border-top:1px solid var(--line); margin-top:10px; padding-top:6px; }
 .produit-choix:has(.produit-radio:checked) .variant-inline{ display:block; }
+
+/* ---------- panneau de choix flottant À DROITE du produit ---------- */
+.produit-assign .piece-menu{ left:calc(100% + 14px); right:auto; top:0; width:300px; max-height:70vh; overflow-y:auto; }
+.piece-menu-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.btn-tout{ border:1px solid var(--blueprint); background:var(--blueprint-soft); color:var(--blueprint); border-radius:var(--radius-pill); padding:4px 12px; font-size:.74rem; font-weight:700; cursor:pointer; flex-shrink:0; transition:all .14s; }
+.btn-tout:hover, .btn-tout.actif{ background:var(--blueprint); color:#fff; }
+
+/* variantes couleur/dimension PROPRES À CHAQUE PIÈCE (apparaissent si cochée) */
+.piece-row{ padding:8px 0; border-bottom:1px dashed var(--line); }
+.piece-row:last-child{ border-bottom:none; }
+.piece-variantes{ display:none; margin:8px 0 2px 28px; padding-left:12px; border-left:2px solid var(--blueprint-soft); }
+.piece-row:has(.assign-check:checked) .piece-variantes{ display:block; }
+.piece-variantes .vm-titre{ margin:8px 0 6px; }
+
+@media (max-width: 900px){
+  .produit-assign .piece-menu{ position:fixed; left:16px; right:16px; top:auto; bottom:16px; width:auto; }
+}
