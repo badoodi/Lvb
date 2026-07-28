@@ -186,9 +186,13 @@ function carte_choix(array $ch, string $groupe, int $selPiece, bool $modifiable)
     $pid = (int) $prod['id'];
     $img = !empty($prod['image']) ? (base_url() . '/' . ltrim($prod['image'], '/')) : '';
     $urlVoir = base_url() . '/client/produit.php?produit=' . $pid . '&config=' . (int) $configId;
+    preg_match('/sel\[(\d+)\]\[(\d+)\]/', $groupe, $mgp);
+    $dCat = $mgp[1] ?? 0; $dPiece = $mgp[2] ?? 0;
     ob_start(); ?>
     <label class="produit-card produit-choix">
-        <input type="radio" class="produit-radio" name="<?= h($groupe) ?>" value="<?= $pid ?>" <?= $selPiece === $pid ? 'checked' : '' ?> <?= $modifiable ? '' : 'disabled' ?>>
+        <input type="radio" class="produit-radio" name="<?= h($groupe) ?>" value="<?= $pid ?>"
+               data-cat="<?= $dCat ?>" data-piece="<?= $dPiece ?>"
+               <?= $selPiece === $pid ? 'checked' : '' ?> <?= $modifiable ? '' : 'disabled' ?>>
         <div class="produit-img<?= $img ? '' : ' produit-img-vide' ?>"<?= $img ? ' style="background-image:url(\'' . h($img) . '\')"' : '' ?>>
             <span class="produit-tag<?= $ch['upgrade'] ? ' supp' : '' ?>"><?= $ch['upgrade'] ? '+ ' . euros($ch['supp']) : euros($prod['prix']) ?></span>
             <span class="produit-check">✓</span>
@@ -227,6 +231,43 @@ function bloc_upgrades(string $cartesHtml, string $nomFormuleSup, bool $ouvert):
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $modifiable) {
     csrf_verifier();
     $action = $_POST['action'] ?? 'save';
+
+    // --- Sauvegarde automatique d'un seul choix (AJAX) ---
+    if ($action === 'ajax_set') {
+        header('Content-Type: application/json; charset=utf-8');
+        $cat = (int) ($_POST['cat'] ?? 0);
+        $piece = (int) ($_POST['piece'] ?? 0);
+        $produit = (int) ($_POST['produit'] ?? 0);
+        $opts = options_categorie($prodStmt, $cat, $niveauChoisi);
+        if ($produit > 0 && isset($opts['autorises'][$produit])) {
+            $prix = $opts['autorises'][$produit];
+            $supp = max(0.0, $prix - $opts['ref']);
+            db()->prepare(
+                'INSERT INTO configuration_produits
+                    (configuration_id, categorie_produit_id, piece_id, produit_id, prix_applique, supplement)
+                 VALUES (?, ?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE produit_id = VALUES(produit_id),
+                    prix_applique = VALUES(prix_applique), supplement = VALUES(supplement)'
+            )->execute([$configId, $cat, $piece, $produit, $prix, $supp]);
+        } else {
+            db()->prepare(
+                'DELETE FROM configuration_produits WHERE configuration_id = ? AND categorie_produit_id = ? AND piece_id = ?'
+            )->execute([$configId, $cat, $piece]);
+        }
+        $s = db()->prepare('SELECT COALESCE(SUM(supplement),0), COUNT(*) FROM configuration_produits WHERE configuration_id = ?');
+        $s->execute([$configId]);
+        [$totalSupp, $nb] = $s->fetch(PDO::FETCH_NUM);
+        $total = $prixBase + (float) $totalSupp;
+        db()->prepare('UPDATE configurations SET prix_total = ? WHERE id = ?')->execute([$total, $configId]);
+        echo json_encode([
+            'ok' => true,
+            'total' => euros($total),
+            'supplements' => euros((float) $totalSupp),
+            'nb' => (int) $nb,
+        ]);
+        exit;
+    }
+
     $selPostees = $_POST['sel'] ?? [];
 
     $pdo = db();
@@ -417,7 +458,9 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
                                     <?php foreach ($base as $ch) { echo carte_choix($ch, $groupe, $selPiece, $modifiable); } ?>
                                     <?php if ($modifiable): ?>
                                         <label class="produit-card produit-vide">
-                                            <input type="radio" class="produit-radio" name="<?= h($groupe) ?>" value="0" <?= $selPiece === 0 ? 'checked' : '' ?>>
+                                            <input type="radio" class="produit-radio" name="<?= h($groupe) ?>" value="0"
+                                                   data-cat="<?= $catId ?>" data-piece="<?= $pid ?>"
+                                                   <?= $selPiece === 0 ? 'checked' : '' ?>>
                                             <div class="produit-vide-inner">Ne pas<br>choisir</div>
                                         </label>
                                     <?php endif; ?>
@@ -438,11 +481,14 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
         <aside class="recap">
             <div class="recap-eyebrow">Récapitulatif</div>
             <h3><?= h($config['plan_nom']) ?></h3>
-            <div class="recap-row"><span>Formule</span><span class="recap-count"><?= h($config['formule_nom']) ?></span></div>
+            <div class="recap-row"><span>Collection</span><span class="recap-count"><?= h($config['formule_nom']) ?></span></div>
             <div class="recap-row"><span>Prix de base</span><span class="recap-count"><?= euros($prixBase) ?></span></div>
-            <div class="recap-row"><span>Options choisies</span><span class="recap-count"><?= $nbChoix ?></span></div>
-            <div class="recap-row"><span>Suppléments</span><span class="recap-count"><?= euros(max(0, $config['prix_total'] - $prixBase)) ?></span></div>
-            <div class="recap-row recap-total"><span>Total estimé</span><span class="recap-count"><?= euros($config['prix_total']) ?></span></div>
+            <div class="recap-row"><span>Options choisies</span><span class="recap-count" id="recap-nb"><?= $nbChoix ?></span></div>
+            <div class="recap-row"><span>Suppléments</span><span class="recap-count" id="recap-supp"><?= euros(max(0, $config['prix_total'] - $prixBase)) ?></span></div>
+            <div class="recap-row recap-total"><span>Total estimé</span><span class="recap-count" id="recap-total"><?= euros($config['prix_total']) ?></span></div>
+            <?php if ($modifiable): ?>
+                <div class="autosave-note" id="autosave-note">✓ Vos choix sont enregistrés automatiquement</div>
+            <?php endif; ?>
 
             <?php if ($modifiable): ?>
                 <button type="submit" name="action" value="save" class="btn-line btn-full">Enregistrer</button>
@@ -462,6 +508,28 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
 
 <script>
 (function () {
+    var CSRF = (document.querySelector('input[name=_csrf]') || {}).value || '';
+    var CFG = new URLSearchParams(location.search).get('config') || '';
+    var note = document.getElementById('autosave-note');
+
+    // Sauvegarde automatique d'un choix (AJAX).
+    function autosave(cat, piece, produit) {
+        var body = new URLSearchParams();
+        body.set('_csrf', CSRF); body.set('action', 'ajax_set');
+        body.set('cat', cat); body.set('piece', piece); body.set('produit', produit);
+        fetch('config.php?config=' + encodeURIComponent(CFG), {
+            method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: body.toString(), credentials: 'same-origin'
+        }).then(function (r) { return r.json(); }).then(function (d) {
+            if (!d || !d.ok) { return; }
+            var t = document.getElementById('recap-total'); if (t) { t.textContent = d.total; }
+            var s = document.getElementById('recap-supp'); if (s) { s.textContent = d.supplements; }
+            var n = document.getElementById('recap-nb'); if (n) { n.textContent = d.nb; }
+            if (note) { note.classList.add('flash-on'); setTimeout(function () { note.classList.remove('flash-on'); }, 1200); }
+        }).catch(function () {});
+    }
+    window.__autosave = autosave;
+
     // Compte le nombre de pièces affectées à chaque produit d'une catégorie.
     function refresh(cat) {
         var c = {};
@@ -525,6 +593,14 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
                 hidden.value = '0';
             }
             refresh(cat);
+            autosave(cat, piece, hidden.value);   // sauvegarde immédiate
+        });
+    });
+    // Choix « toute la villa » (radios) : sauvegarde immédiate au changement.
+    document.querySelectorAll('.produit-radio').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            if (!radio.checked) { return; }
+            autosave(radio.getAttribute('data-cat'), radio.getAttribute('data-piece'), radio.value);
         });
     });
     // Clic à l'extérieur : on referme les menus.

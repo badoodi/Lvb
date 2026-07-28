@@ -913,3 +913,7 @@ img{ max-width:100%; display:block; }
 .projet-actions{ display:flex; flex-wrap:wrap; gap:8px; }
 .projet-actions form{ margin:0; }
 @media(max-width:760px){ .projet-card-wide{ grid-template-columns:1fr; } .projet-villa{ min-height:130px; } .projet-plan{ border-left:none; border-top:1px solid var(--line); } }
+
+/* ---------- indicateur d'auto-sauvegarde (config) ---------- */
+.autosave-note{ margin-top:14px; font-size:.8rem; font-weight:600; color:var(--green); background:#F0FBF5; border:1px solid #CDEBD9; border-radius:var(--radius-sm); padding:9px 12px; text-align:center; transition:transform .15s, box-shadow .15s; }
+.autosave-note.flash-on{ transform:scale(1.03); box-shadow:0 4px 14px rgba(22,163,74,.25); }
