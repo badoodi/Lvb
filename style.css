@@ -1019,3 +1019,42 @@ img{ max-width:100%; display:block; }
 @media (max-width: 900px){
   .produit-assign .piece-menu{ position:fixed; left:16px; right:16px; top:auto; bottom:16px; width:auto; }
 }
+
+/* =========================================================
+   MODALE de choix des pièces (remplace le panneau flottant)
+   ========================================================= */
+.modal-backdrop{
+  position:fixed; inset:0; z-index:200;
+  background:rgba(10,16,32,.62); backdrop-filter:blur(2px);
+  animation:fadeIn .16s ease;
+}
+@keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
+body.modal-ouvert{ overflow:hidden; }
+
+/* La carte flottante devient une fenêtre centrée sur l'overlay. */
+.produit-assign .piece-menu{
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  right:auto; bottom:auto;
+  width:min(460px, 92vw); max-height:86vh; overflow-y:auto; z-index:210;
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+  padding:26px 24px 22px; box-shadow:0 24px 70px rgba(10,16,32,.42);
+  animation:modalIn .18s ease;
+}
+@keyframes modalIn{ from{ opacity:0; transform:translate(-50%,-48%) scale(.98);} to{ opacity:1; transform:translate(-50%,-50%) scale(1);} }
+.piece-menu-close{
+  position:absolute; top:12px; right:14px; width:30px; height:30px; border-radius:50%;
+  border:1px solid var(--line); background:#fff; color:var(--ink-soft);
+  font-size:1.3rem; line-height:1; cursor:pointer; transition:all .14s;
+}
+.piece-menu-close:hover{ background:var(--blueprint-soft); color:var(--blueprint); border-color:var(--blueprint); }
+.piece-menu-titre{ font-family:var(--font-display); font-weight:600; font-size:1.25rem; color:var(--ink); padding-right:34px; }
+.piece-menu-desc{ color:var(--ink-soft); font-size:.9rem; margin:5px 0 16px; }
+
+@media (max-width: 900px){
+  .produit-assign .piece-menu{ width:94vw; max-height:88vh; }
+}
+
+/* La modale est en position:fixed : la carte ouverte ne doit créer AUCUN
+   contexte d'empilement (z-index/transform), sinon la modale passe SOUS
+   l'overlay et les clics sont interceptés. */
+.produit-assign:has(.piece-menu.ouvert){ z-index:auto !important; transform:none !important; }

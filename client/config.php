@@ -213,7 +213,10 @@ function carte_assign(array $ch, int $catId, array $etages, array $selCat): stri
                 <a class="btn-voir-p" href="<?= h($urlVoir) ?>" onclick="event.stopPropagation()">Voir +</a>
             </div>
         </div>
-        <div class="piece-menu" hidden>
+        <div class="piece-menu" hidden role="dialog" aria-modal="true">
+            <button type="button" class="piece-menu-close" aria-label="Fermer">&times;</button>
+            <div class="piece-menu-titre"><?= h($prod['nom']) ?></div>
+            <p class="piece-menu-desc">Choisissez les pièces où vous désirez mettre ce produit.</p>
             <?php $caracs = produit_caracteristiques($pid); if ($caracs): ?>
                 <div class="vm-titre">Caractéristiques</div>
                 <ul class="vm-caracs">
@@ -221,7 +224,7 @@ function carte_assign(array $ch, int $catId, array $etages, array $selCat): stri
                 </ul>
             <?php endif; ?>
             <div class="piece-menu-head">
-                <span>Affecter « <?= h($prod['nom']) ?> » à quelles pièces&nbsp;?</span>
+                <span>Pièces de la villa</span>
                 <button type="button" class="btn-tout" data-cat="<?= $catId ?>" data-product="<?= $pid ?>">Tout</button>
             </div>
             <?php
@@ -628,6 +631,8 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
     </form>
 </div>
 
+<div class="modal-backdrop" hidden></div>
+
 <script>
 (function () {
     var CSRF = (document.querySelector('input[name=_csrf]') || {}).value || '';
@@ -718,8 +723,19 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
             card.classList.toggle('actif', n > 0);
         });
     }
+    var backdrop = document.querySelector('.modal-backdrop');
+    // Ferme la fenêtre (modale) de choix des pièces + l'overlay.
     function closeMenus() {
-        document.querySelectorAll('.piece-menu').forEach(function (m) { m.hidden = true; });
+        document.querySelectorAll('.piece-menu').forEach(function (m) { m.classList.remove('ouvert'); m.hidden = true; });
+        if (backdrop) { backdrop.hidden = true; }
+        document.body.classList.remove('modal-ouvert');
+    }
+    // Ouvre la modale d'une carte produit au centre de l'écran, sur fond assombri.
+    function openMenu(menu) {
+        closeMenus();
+        if (backdrop) { backdrop.hidden = false; }
+        menu.hidden = false; menu.classList.add('ouvert');
+        document.body.classList.add('modal-ouvert');
     }
     // Bouton « Voir d'autres options » -> révèle les produits de la formule supérieure.
     document.querySelectorAll('.voir-options').forEach(function (btn) {
@@ -730,17 +746,22 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
             btn.classList.toggle('actif', show);
         });
     });
-    // Clic n'importe où sur la carte produit -> ouvre/ferme son menu de pièces.
+    // Clic sur la carte produit (ou son bouton « Choisir ») -> ouvre la modale de choix.
     document.querySelectorAll('.produit-assign').forEach(function (card) {
         card.addEventListener('click', function (e) {
             if (e.target.closest('.piece-menu')) { return; }
             e.stopPropagation();
-            var menu = card.querySelector('.piece-menu');
-            var open = menu.hidden;
-            closeMenus();
-            menu.hidden = !open;
+            openMenu(card.querySelector('.piece-menu'));
         });
     });
+    // Bouton de fermeture de la modale.
+    document.querySelectorAll('.piece-menu-close').forEach(function (b) {
+        b.addEventListener('click', function (e) { e.stopPropagation(); closeMenus(); });
+    });
+    // Clic sur l'overlay -> ferme.
+    if (backdrop) { backdrop.addEventListener('click', closeMenus); }
+    // Touche Échap -> ferme.
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeMenus(); } });
     // Accordéon des étages : un seul étage ouvert à la fois.
     document.querySelectorAll('.etage-head').forEach(function (head) {
         head.addEventListener('click', function (e) {
