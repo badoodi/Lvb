@@ -4,7 +4,7 @@
  * configurations.
  */
 require_once __DIR__ . '/../lib/layout.php';
-exiger_admin();
+exiger_acces_admin('');
 $base = base_url();
 
 $pdo = db();

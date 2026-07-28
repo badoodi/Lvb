@@ -26,7 +26,7 @@ require_once __DIR__ . '/layout.php';
 
 function crud_page(array $cfg): void
 {
-    exiger_admin();
+    exiger_acces_admin($cfg['menu'] ?? '');
     $base = base_url();
     $pdo = db();
     $table = $cfg['table'];

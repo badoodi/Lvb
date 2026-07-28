@@ -260,6 +260,78 @@ function exiger_client(): array
 }
 
 /* -----------------------------------------------------------------------
+ * Niveaux d'accès administrateurs
+ * -------------------------------------------------------------------- */
+
+/** Menu admin — source unique de vérité : clé => [url, libellé]. */
+function admin_menus(): array
+{
+    return [
+        ''                   => ['index.php',                   'Vue globale'],
+        'commandes'          => ['commandes.php',               'Commandes'],
+        'plans'              => ['crud/plans.php',              'Plans de villa'],
+        'formules'           => ['crud/formules.php',           'Collections'],
+        'grandes_categories' => ['crud/grandes_categories.php', 'Grandes catégories'],
+        'categories'         => ['crud/categories.php',         'Catégories produits'],
+        'produits'           => ['crud/produits.php',           'Produits'],
+        'devis'              => ['crud/devis.php',              'Devis'],
+        'clients'            => ['crud/clients.php',            'Clients'],
+        'champs'             => ['crud/champs.php',             'Champs dynamiques'],
+        'admins'             => ['crud/admins.php',             'Administrateurs'],
+    ];
+}
+
+/** Rubriques attribuables à un admin standard (tout sauf « Administrateurs »). */
+function admin_menus_attribuables(): array
+{
+    $m = admin_menus();
+    unset($m['admins']);
+    return $m;
+}
+
+/** Clés de menu autorisées pour un administrateur (depuis admin_acces). */
+function admin_acces_cles(int $adminId): array
+{
+    $stmt = db()->prepare('SELECT menu_cle FROM admin_acces WHERE admin_id = ?');
+    $stmt->execute([$adminId]);
+    return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+}
+
+function admin_est_webmaster(): bool
+{
+    $a = admin_connecte();
+    return $a && !empty($a['webmaster']);
+}
+
+/** L'admin connecté a-t-il accès à la rubrique $cle ? (webmaster = tout) */
+function admin_peut(string $cle): bool
+{
+    if (admin_est_webmaster()) {
+        return true;
+    }
+    $a = admin_connecte();
+    return $a && in_array($cle, $a['acces'] ?? [], true);
+}
+
+/**
+ * Garde d'accès pour une rubrique admin : exige la connexion admin puis
+ * vérifie le droit. Si l'accès est refusé, affiche un message et arrête.
+ */
+function exiger_acces_admin(string $cle): array
+{
+    $admin = exiger_admin();
+    if (!admin_peut($cle)) {
+        layout_admin_debut('Accès refusé', '');
+        echo '<div class="flash flash-erreur"><strong>Accès refusé.</strong> '
+           . 'Votre compte administrateur n\'a pas accès à cette rubrique. '
+           . 'Contactez le webmaster pour obtenir les droits nécessaires.</div>';
+        layout_admin_fin();
+        exit;
+    }
+    return $admin;
+}
+
+/* -----------------------------------------------------------------------
  * Champs personnalisés (dynamiques)
  * Mécanisme : definitions_champs_personnalises + valeurs_champs_personnalises.
  * NE JAMAIS modifier la structure des tables pour un champ métier.

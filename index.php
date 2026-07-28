@@ -36,8 +36,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($admin && password_verify($motdepasse, $admin['mot_de_passe'])) {
             session_regenerate_id(true);
-            $_SESSION['admin'] = ['id' => (int) $admin['id'], 'identifiant' => $admin['identifiant']];
-            redirect(base_url() . '/admin/index.php');
+            $estWebmaster = (int) ($admin['est_webmaster'] ?? 0) === 1;
+            $_SESSION['admin'] = [
+                'id'         => (int) $admin['id'],
+                'identifiant' => $admin['identifiant'],
+                'webmaster'  => $estWebmaster,
+                'acces'      => $estWebmaster ? [] : admin_acces_cles((int) $admin['id']),
+            ];
+            // Atterrissage : première rubrique autorisée (le webmaster va au tableau de bord).
+            $dest = base_url() . '/admin/index.php';
+            if (!$estWebmaster) {
+                foreach (admin_menus() as $cle => [$url, $label]) {
+                    if ($cle !== 'admins' && admin_peut($cle)) {
+                        $dest = base_url() . '/admin/' . $url;
+                        break;
+                    }
+                }
+            }
+            redirect($dest);
         }
 
         // 2) Tentative client

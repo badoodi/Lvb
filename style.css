@@ -1122,3 +1122,9 @@ body.modal-ouvert{ overflow:hidden; }
   .table-commandes th:nth-child(5), .table-commandes td:nth-child(5),
   .table-commandes th:nth-child(6), .table-commandes td:nth-child(6){ display:none; }
 }
+
+/* checklist des rubriques accessibles (gestion des admins) */
+.acces-liste{ display:grid; grid-template-columns:1fr 1fr; gap:6px 18px; margin-top:4px; }
+.acces-item{ display:flex; align-items:center; gap:8px; font-size:.9rem; cursor:pointer; }
+.acces-item input{ width:17px; height:17px; accent-color:var(--blueprint); }
+@media(max-width:560px){ .acces-liste{ grid-template-columns:1fr; } }

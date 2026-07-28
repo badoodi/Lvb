@@ -6,7 +6,7 @@
  */
 require_once __DIR__ . '/../lib/layout.php';
 require_once __DIR__ . '/../lib/mail.php';
-$admin = exiger_admin();
+$admin = exiger_acces_admin('commandes');
 $base = base_url();
 
 /* --- Validation d'une commande --- */

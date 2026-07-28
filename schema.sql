@@ -44,7 +44,18 @@ CREATE TABLE administrateurs (
     id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     identifiant     VARCHAR(50)  NOT NULL UNIQUE,
     mot_de_passe    VARCHAR(255) NOT NULL,        -- hash bcrypt (password_hash / password_verify)
+    est_webmaster   TINYINT(1)   NOT NULL DEFAULT 0,  -- 1 = accès total + gestion des admins
     date_creation   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- Rubriques du menu admin autorisées pour chaque administrateur non-webmaster.
+-- (Le webmaster a accès à tout, sans ligne ici.)
+CREATE TABLE admin_acces (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    admin_id    INT UNSIGNED NOT NULL,
+    menu_cle    VARCHAR(40)  NOT NULL,           -- ex : 'commandes', 'plans', 'produits'…
+    UNIQUE KEY uq_admin_menu (admin_id, menu_cle),
+    CONSTRAINT fk_acces_admin FOREIGN KEY (admin_id) REFERENCES administrateurs(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE clients (
@@ -328,8 +339,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- =========================================================
 
 -- Compte admin : identifiant "vadmin" / mot de passe "myadmin" (hash bcrypt ci-dessous)
-INSERT INTO administrateurs (identifiant, mot_de_passe) VALUES
-('vadmin', '$2b$12$k.0OLz/EODRgyxBimVEZ3uH8M3xonzL6EjRJym0gmjyqb26fzhTz2');
+INSERT INTO administrateurs (identifiant, mot_de_passe, est_webmaster) VALUES
+('vadmin', '$2b$12$k.0OLz/EODRgyxBimVEZ3uH8M3xonzL6EjRJym0gmjyqb26fzhTz2', 1);
 
 -- Les 3 formules
 INSERT INTO formules (id, nom, description, niveau) VALUES

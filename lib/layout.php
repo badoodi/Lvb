@@ -149,18 +149,13 @@ function layout_admin_debut(string $titre, string $actif = ''): void
     $admin = admin_connecte();
     layout_head($titre);
     $base = base_url();
-    $liens = [
-        ''                   => ['index.php',               'Vue globale'],
-        'commandes'          => ['commandes.php',           'Commandes'],
-        'plans'              => ['crud/plans.php',          'Plans de villa'],
-        'formules'           => ['crud/formules.php',       'Collections'],
-        'grandes_categories' => ['crud/grandes_categories.php', 'Grandes catégories'],
-        'categories'         => ['crud/categories.php',     'Catégories produits'],
-        'produits'           => ['crud/produits.php',       'Produits'],
-        'devis'              => ['crud/devis.php',           'Devis'],
-        'clients'            => ['crud/clients.php',         'Clients'],
-        'champs'             => ['crud/champs.php',          'Champs dynamiques'],
-    ];
+    // Menu filtré selon les droits de l'admin connecté (webmaster = tout).
+    $liens = [];
+    foreach (admin_menus() as $cle => $lien) {
+        if (admin_peut($cle)) {
+            $liens[$cle] = $lien;
+        }
+    }
     ?>
     <div class="admin-shell">
         <aside class="admin-side">
