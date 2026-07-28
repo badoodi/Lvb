@@ -147,6 +147,49 @@ function charger_selections(int $configId): array
     return $map;
 }
 
+/* --- Sections Couleur / Dimensions / Caractéristiques d'un produit --- */
+function variantes_html(array $prod, int $catId, int $pid): string
+{
+    $couleurs = array_filter(array_map('trim', explode(',', (string) ($prod['couleurs'] ?? ''))));
+    $dims = array_filter(array_map('trim', preg_split('/\r?\n/', (string) ($prod['dimensions'] ?? ''))));
+    $caracs = produit_caracteristiques($pid);
+    if (!$couleurs && !$dims && !$caracs) {
+        return '';
+    }
+    $vsel = $GLOBALS['variantes'][$pid] ?? ['couleur' => null, 'dimension' => null];
+    $defCoul = $vsel['couleur'] ?: ($couleurs ? reset($couleurs) : '');
+    $defDim = $vsel['dimension'] ?: ($dims ? reset($dims) : '');
+
+    ob_start(); ?>
+    <input type="hidden" class="coul-hidden" data-cat="<?= $catId ?>" data-product="<?= $pid ?>" value="<?= h($defCoul) ?>">
+    <input type="hidden" class="dim-hidden" data-cat="<?= $catId ?>" data-product="<?= $pid ?>" value="<?= h($defDim) ?>">
+    <?php if ($couleurs): ?>
+        <div class="vm-titre">Couleur</div>
+        <div class="vm-couleurs">
+            <?php foreach ($couleurs as $c): ?>
+                <span class="vm-couleur<?= $c === $defCoul ? ' actif' : '' ?>" data-cat="<?= $catId ?>" data-product="<?= $pid ?>"
+                      data-val="<?= h($c) ?>" title="<?= h(ucfirst($c)) ?>" style="background:<?= h(couleur_css($c)) ?>"></span>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+    <?php if ($dims): ?>
+        <div class="vm-titre">Dimensions</div>
+        <div class="vm-dims">
+            <?php foreach ($dims as $d): ?>
+                <button type="button" class="vm-dim<?= $d === $defDim ? ' actif' : '' ?>" data-cat="<?= $catId ?>" data-product="<?= $pid ?>" data-val="<?= h($d) ?>"><?= h($d) ?></button>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+    <?php if ($caracs): ?>
+        <div class="vm-titre">Caractéristiques</div>
+        <ul class="vm-caracs">
+            <?php foreach ($caracs as $c): ?><li><strong><?= h($c['nom']) ?></strong> : <?= h($c['valeur']) ?></li><?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+    <?php
+    return ob_get_clean();
+}
+
 /* --- Rendu d'une carte produit (catégorie « par pièce ») --- */
 function carte_assign(array $ch, int $catId, array $etages, array $selCat): string
 {
@@ -170,7 +213,8 @@ function carte_assign(array $ch, int $catId, array $etages, array $selCat): stri
             </div>
         </div>
         <div class="piece-menu" hidden>
-            <div class="piece-menu-head">Affecter « <?= h($prod['nom']) ?> » à&nbsp;:</div>
+            <?= variantes_html($prod, $catId, $pid) ?>
+            <div class="piece-menu-head">Affecter « <?= h($prod['nom']) ?> » à quelles pièces&nbsp;?</div>
             <div class="etage-accordion">
                 <?php foreach ($etages as $etNom => $piecesEt): ?>
                     <div class="etage-item">
@@ -265,17 +309,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cat = (int) ($_POST['cat'] ?? 0);
         $piece = (int) ($_POST['piece'] ?? 0);
         $produit = (int) ($_POST['produit'] ?? 0);
+        $couleur = trim((string) ($_POST['couleur'] ?? ''));
+        $dimension = trim((string) ($_POST['dimension'] ?? ''));
         $opts = options_categorie($prodStmt, $cat, $niveauChoisi);
         if ($produit > 0 && isset($opts['autorises'][$produit])) {
             $prix = $opts['autorises'][$produit];
             $supp = max(0.0, $prix - $opts['ref']);
             db()->prepare(
                 'INSERT INTO configuration_produits
-                    (configuration_id, categorie_produit_id, piece_id, produit_id, prix_applique, supplement)
-                 VALUES (?, ?, ?, ?, ?, ?)
+                    (configuration_id, categorie_produit_id, piece_id, produit_id, couleur, dimension, prix_applique, supplement)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                  ON DUPLICATE KEY UPDATE produit_id = VALUES(produit_id),
+                    couleur = VALUES(couleur), dimension = VALUES(dimension),
                     prix_applique = VALUES(prix_applique), supplement = VALUES(supplement)'
-            )->execute([$configId, $cat, $piece, $produit, $prix, $supp]);
+            )->execute([$configId, $cat, $piece, $produit, ($couleur ?: null), ($dimension ?: null), $prix, $supp]);
         } else {
             db()->prepare(
                 'DELETE FROM configuration_produits WHERE configuration_id = ? AND categorie_produit_id = ? AND piece_id = ?'
@@ -387,6 +434,14 @@ $selections = charger_selections($configId);
 $nbChoix = 0;
 foreach ($selections as $parPiece) {
     $nbChoix += count($parPiece);
+}
+
+// Couleur / dimension déjà retenues par produit (pour pré-sélection).
+$GLOBALS['variantes'] = [];
+$vst = db()->prepare('SELECT produit_id, couleur, dimension FROM configuration_produits WHERE configuration_id = ?');
+$vst->execute([$configId]);
+foreach ($vst as $vr) {
+    $GLOBALS['variantes'][(int) $vr['produit_id']] = ['couleur' => $vr['couleur'], 'dimension' => $vr['dimension']];
 }
 
 layout_client_debut('Configuration — ' . $config['plan_nom']);
@@ -553,9 +608,12 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
 
     // Sauvegarde automatique d'un choix (AJAX).
     function autosave(cat, piece, produit) {
+        var cEl = document.querySelector('.coul-hidden[data-cat="' + cat + '"][data-product="' + produit + '"]');
+        var dEl = document.querySelector('.dim-hidden[data-cat="' + cat + '"][data-product="' + produit + '"]');
         var body = new URLSearchParams();
         body.set('_csrf', CSRF); body.set('action', 'ajax_set');
         body.set('cat', cat); body.set('piece', piece); body.set('produit', produit);
+        body.set('couleur', cEl ? cEl.value : ''); body.set('dimension', dEl ? dEl.value : '');
         fetch('config.php?config=' + encodeURIComponent(CFG), {
             method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: body.toString(), credentials: 'same-origin'
@@ -654,6 +712,39 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
         radio.addEventListener('change', function () {
             if (!radio.checked) { return; }
             autosave(radio.getAttribute('data-cat'), radio.getAttribute('data-piece'), radio.value);
+        });
+    });
+    // Ré-enregistre toutes les pièces déjà affectées à un produit (après changement couleur/dimension).
+    function resaveProduct(cat, prod) {
+        document.querySelectorAll('.sel-hidden[data-cat="' + cat + '"]').forEach(function (h) {
+            if (h.value === String(prod)) { autosave(cat, h.getAttribute('data-piece'), prod); }
+        });
+        // cas « toute la villa » (radio sélectionné)
+        var r = document.querySelector('.produit-radio[data-cat="' + cat + '"][value="' + prod + '"]:checked');
+        if (r) { autosave(cat, r.getAttribute('data-piece'), prod); }
+    }
+    // Sélection d'une couleur (pastille).
+    document.querySelectorAll('.vm-couleur').forEach(function (el) {
+        el.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var cat = el.getAttribute('data-cat'), prod = el.getAttribute('data-product'), val = el.getAttribute('data-val');
+            var hid = document.querySelector('.coul-hidden[data-cat="' + cat + '"][data-product="' + prod + '"]');
+            if (hid) { hid.value = val; }
+            el.parentElement.querySelectorAll('.vm-couleur').forEach(function (o) { o.classList.remove('actif'); });
+            el.classList.add('actif');
+            resaveProduct(cat, prod);
+        });
+    });
+    // Sélection d'une dimension.
+    document.querySelectorAll('.vm-dim').forEach(function (el) {
+        el.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var cat = el.getAttribute('data-cat'), prod = el.getAttribute('data-product'), val = el.getAttribute('data-val');
+            var hid = document.querySelector('.dim-hidden[data-cat="' + cat + '"][data-product="' + prod + '"]');
+            if (hid) { hid.value = val; }
+            el.parentElement.querySelectorAll('.vm-dim').forEach(function (o) { o.classList.remove('actif'); });
+            el.classList.add('actif');
+            resaveProduct(cat, prod);
         });
     });
     // Clic à l'extérieur : on referme les menus.

@@ -918,3 +918,17 @@ img{ max-width:100%; display:block; }
 .autosave-note{ margin-top:14px; font-size:.8rem; font-weight:600; color:var(--green); background:#F0FBF5; border:1px solid #CDEBD9; border-radius:var(--radius-sm); padding:9px 12px; text-align:center; transition:transform .15s, box-shadow .15s; }
 .autosave-note.flash-on{ transform:scale(1.03); box-shadow:0 4px 14px rgba(22,163,74,.25); }
 .autosave-note.erreur{ color:#a23a24; background:#FFF4F1; border-color:#F3C9BE; }
+
+/* ---------- sélecteur couleur / dimension dans le panneau produit ---------- */
+.vm-titre{ font-size:.74rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); margin:12px 0 8px; }
+.vm-couleurs{ display:flex; flex-wrap:wrap; gap:9px; }
+.vm-couleur{ width:28px; height:28px; border-radius:50%; border:2px solid var(--line); cursor:pointer; box-shadow:inset 0 0 0 2px #fff; transition:transform .12s, box-shadow .12s; }
+.vm-couleur:hover{ transform:scale(1.1); }
+.vm-couleur.actif{ border-color:var(--blueprint); box-shadow:inset 0 0 0 2px #fff, 0 0 0 2px var(--blueprint); }
+.vm-dims{ display:flex; flex-wrap:wrap; gap:8px; }
+.vm-dim{ border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:var(--radius-pill); padding:6px 14px; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .14s; }
+.vm-dim:hover{ border-color:var(--blueprint); color:var(--blueprint); }
+.vm-dim.actif{ background:var(--blueprint); color:#fff; border-color:var(--blueprint); }
+.vm-caracs{ font-size:.82rem; color:var(--ink); line-height:1.5; padding-left:2px; }
+.vm-caracs li{ padding:1px 0; }
+.piece-menu .piece-menu-head{ margin-top:14px; }
