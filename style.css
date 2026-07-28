@@ -616,6 +616,9 @@ img{ max-width:100%; display:block; }
 .etage-head.ouvert{ background:var(--blueprint-soft); color:var(--blueprint); }
 .etage-head.ouvert .chev{ transform:rotate(180deg); }
 .etage-pieces{ padding:8px 12px 12px; display:flex; flex-direction:column; gap:4px; }
+/* Sinon `display:flex` l'emporte sur l'attribut [hidden] et l'accordéon reste
+   toujours ouvert. */
+.etage-pieces[hidden]{ display:none; }
 
 .piece-check{ display:flex; align-items:flex-start; gap:10px; padding:8px 6px; border-radius:var(--radius-sm); cursor:pointer; }
 .piece-check:hover{ background:#FAFBFE; }
