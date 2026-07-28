@@ -272,28 +272,52 @@ function carte_choix(array $ch, string $groupe, int $selPiece, bool $modifiable)
     $urlVoir = base_url() . '/client/produit.php?produit=' . $pid . '&config=' . (int) $configId;
     preg_match('/sel\[(\d+)\]\[(\d+)\]/', $groupe, $mgp);
     $dCat = $mgp[1] ?? 0; $dPiece = $mgp[2] ?? 0;
-    ob_start(); ?>
-    <label class="produit-card produit-choix">
-        <input type="radio" class="produit-radio" name="<?= h($groupe) ?>" value="<?= $pid ?>"
-               data-cat="<?= $dCat ?>" data-piece="<?= $dPiece ?>"
-               <?= $selPiece === $pid ? 'checked' : '' ?> <?= $modifiable ? '' : 'disabled' ?>>
-        <div class="produit-img<?= $img ? '' : ' produit-img-vide' ?>"<?= $img ? ' style="background-image:url(\'' . h($img) . '\')"' : '' ?>>
-            <span class="produit-tag<?= $ch['upgrade'] ? ' supp' : '' ?>"><?= $ch['upgrade'] ? '+ ' . euros($ch['supp']) : euros($prod['prix']) ?></span>
-            <span class="produit-check">✓</span>
-        </div>
-        <div class="produit-body">
-            <div class="produit-nom"><?= h($prod['nom']) ?></div>
-            <?php if (!empty($prod['description'])): ?><div class="produit-desc"><?= h($prod['description']) ?></div><?php endif; ?>
-            <div class="produit-actions">
-                <span class="btn-choisir-p">Choisir</span>
-                <a class="btn-voir-p" href="<?= h($urlVoir) ?>" onclick="event.stopPropagation()">Voir +</a>
+    $vh = $modifiable ? variantes_html($prod, (int) $dCat, (int) $dPiece, $pid) : '';
+    $avecModale = ($vh !== '');
+    $tag = '<span class="produit-tag' . ($ch['upgrade'] ? ' supp' : '') . '">'
+         . ($ch['upgrade'] ? '+ ' . euros($ch['supp']) : euros($prod['prix'])) . '</span>';
+    $imgStyle = $img ? ' style="background-image:url(\'' . h($img) . '\')"' : '';
+    $imgCls = $img ? '' : ' produit-img-vide';
+
+    ob_start();
+    if (!$avecModale): /* --- produit sans variante : sélection directe au clic --- */ ?>
+        <label class="produit-card produit-choix">
+            <input type="radio" class="produit-radio" name="<?= h($groupe) ?>" value="<?= $pid ?>"
+                   data-cat="<?= $dCat ?>" data-piece="<?= $dPiece ?>"
+                   <?= $selPiece === $pid ? 'checked' : '' ?> <?= $modifiable ? '' : 'disabled' ?>>
+            <div class="produit-img<?= $imgCls ?>"<?= $imgStyle ?>><?= $tag ?><span class="produit-check">✓</span></div>
+            <div class="produit-body">
+                <div class="produit-nom"><?= h($prod['nom']) ?></div>
+                <?php if (!empty($prod['description'])): ?><div class="produit-desc"><?= h($prod['description']) ?></div><?php endif; ?>
+                <div class="produit-actions">
+                    <span class="btn-choisir-p">Choisir</span>
+                    <a class="btn-voir-p" href="<?= h($urlVoir) ?>" onclick="event.stopPropagation()">Voir +</a>
+                </div>
             </div>
-            <?php $vh = variantes_html($prod, (int) $dCat, (int) $dPiece, $pid); if ($vh !== ''): ?>
-                <div class="variant-inline" onclick="event.preventDefault()"><?= $vh ?></div>
-            <?php endif; ?>
+        </label>
+    <?php else: /* --- produit avec coloris/caractéristiques : choix dans une modale --- */ ?>
+        <div class="produit-card produit-choix produit-choix-modal" role="button" tabindex="0">
+            <input type="radio" class="produit-radio" name="<?= h($groupe) ?>" value="<?= $pid ?>"
+                   data-cat="<?= $dCat ?>" data-piece="<?= $dPiece ?>" <?= $selPiece === $pid ? 'checked' : '' ?> hidden>
+            <div class="produit-img<?= $imgCls ?>"<?= $imgStyle ?>><?= $tag ?><span class="produit-check">✓</span></div>
+            <div class="produit-body">
+                <div class="produit-nom"><?= h($prod['nom']) ?></div>
+                <?php if (!empty($prod['description'])): ?><div class="produit-desc"><?= h($prod['description']) ?></div><?php endif; ?>
+                <div class="produit-actions">
+                    <span class="btn-choisir-p">Choisir</span>
+                    <a class="btn-voir-p" href="<?= h($urlVoir) ?>" onclick="event.stopPropagation()">Voir +</a>
+                </div>
+            </div>
+            <div class="piece-menu" hidden role="dialog" aria-modal="true">
+                <button type="button" class="piece-menu-close" aria-label="Fermer">&times;</button>
+                <div class="piece-menu-titre"><?= h($prod['nom']) ?></div>
+                <p class="piece-menu-desc">Choisissez le coloris et les caractéristiques de ce produit.</p>
+                <?= $vh ?>
+                <button type="button" class="btn-envoyer btn-choisir-global" style="width:auto;">Choisir ce produit</button>
+            </div>
         </div>
-    </label>
-    <?php return ob_get_clean();
+    <?php endif;
+    return ob_get_clean();
 }
 
 /* --- Rendu du bloc « Voir d'autres options » (produits de la formule supérieure) --- */
@@ -747,11 +771,25 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
         });
     });
     // Clic sur la carte produit (ou son bouton « Choisir ») -> ouvre la modale de choix.
-    document.querySelectorAll('.produit-assign').forEach(function (card) {
+    document.querySelectorAll('.produit-assign, .produit-choix-modal').forEach(function (card) {
         card.addEventListener('click', function (e) {
-            if (e.target.closest('.piece-menu')) { return; }
+            if (e.target.closest('.piece-menu') || e.target.closest('.btn-voir-p')) { return; }
             e.stopPropagation();
             openMenu(card.querySelector('.piece-menu'));
+        });
+    });
+    // « Toute la villa » : bouton « Choisir ce produit » dans la modale -> coche
+    // le produit (radio) et enregistre, puis ferme.
+    document.querySelectorAll('.btn-choisir-global').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var card = btn.closest('.produit-choix-modal');
+            var radio = card.querySelector('.produit-radio');
+            if (radio && !radio.checked) {
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            closeMenus();
         });
     });
     // Bouton de fermeture de la modale.

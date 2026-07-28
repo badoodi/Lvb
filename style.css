@@ -1036,7 +1036,8 @@ img{ max-width:100%; display:block; }
 body.modal-ouvert{ overflow:hidden; }
 
 /* La carte flottante devient une fenêtre centrée sur l'overlay. */
-.produit-assign .piece-menu{
+.produit-assign .piece-menu,
+.produit-choix-modal .piece-menu{
   position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
   right:auto; bottom:auto;
   width:min(460px, 92vw); max-height:86vh; overflow-y:auto; z-index:210;
@@ -1055,13 +1056,17 @@ body.modal-ouvert{ overflow:hidden; }
 .piece-menu-desc{ color:var(--ink-soft); font-size:.9rem; margin:5px 0 16px; }
 
 @media (max-width: 900px){
-  .produit-assign .piece-menu{ width:94vw; max-height:88vh; }
+  .produit-assign .piece-menu,
+  .produit-choix-modal .piece-menu{ width:94vw; max-height:88vh; }
 }
 
 /* La modale est en position:fixed : la carte ouverte ne doit créer AUCUN
    contexte d'empilement (z-index/transform), sinon la modale passe SOUS
    l'overlay et les clics sont interceptés. */
-.produit-assign:has(.piece-menu.ouvert){ z-index:auto !important; transform:none !important; }
+.produit-assign:has(.piece-menu.ouvert),
+.produit-choix-modal:has(.piece-menu.ouvert){ z-index:auto !important; transform:none !important; }
+.produit-choix-modal{ cursor:pointer; }
+.produit-choix-modal .btn-choisir-global{ margin-top:16px; }
 
 /* =========================================================
    MENU MOBILE (hamburger) + colonnes de tableaux masquées
