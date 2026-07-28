@@ -917,3 +917,4 @@ img{ max-width:100%; display:block; }
 /* ---------- indicateur d'auto-sauvegarde (config) ---------- */
 .autosave-note{ margin-top:14px; font-size:.8rem; font-weight:600; color:var(--green); background:#F0FBF5; border:1px solid #CDEBD9; border-radius:var(--radius-sm); padding:9px 12px; text-align:center; transition:transform .15s, box-shadow .15s; }
 .autosave-note.flash-on{ transform:scale(1.03); box-shadow:0 4px 14px rgba(22,163,74,.25); }
+.autosave-note.erreur{ color:#a23a24; background:#FFF4F1; border-color:#F3C9BE; }

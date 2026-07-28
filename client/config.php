@@ -228,13 +228,27 @@ function bloc_upgrades(string $cartesHtml, string $nomFormuleSup, bool $ouvert):
 /* =====================================================================
  * TRAITEMENT POST (enregistrer / valider)
  * ================================================================== */
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $modifiable) {
-    csrf_verifier();
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? 'save';
+    $estAjax = ($action === 'ajax_set');
+
+    // Configuration non modifiable (déjà validée / annulée) : on le dit clairement.
+    if (!$modifiable) {
+        if ($estAjax) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => false, 'error' => 'Configuration non modifiable (statut : ' . $config['statut'] . ')']);
+            exit;
+        }
+        flash('Cette configuration n\'est plus modifiable (statut : ' . $config['statut'] . ').', 'erreur');
+        redirect($base . '/client/config.php?config=' . $configId);
+    }
+
+    csrf_verifier();
 
     // --- Sauvegarde automatique d'un seul choix (AJAX) ---
     if ($action === 'ajax_set') {
         header('Content-Type: application/json; charset=utf-8');
+        try {
         $cat = (int) ($_POST['cat'] ?? 0);
         $piece = (int) ($_POST['piece'] ?? 0);
         $produit = (int) ($_POST['produit'] ?? 0);
@@ -259,6 +273,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $modifiable) {
         [$totalSupp, $nb] = $s->fetch(PDO::FETCH_NUM);
         $total = $prixBase + (float) $totalSupp;
         db()->prepare('UPDATE configurations SET prix_total = ? WHERE id = ?')->execute([$total, $configId]);
+        } catch (Throwable $e) {
+            error_log('[LVB] ajax_set config #' . $configId . ' : ' . $e->getMessage());
+            echo json_encode(['ok' => false, 'error' => 'Erreur base de données : ' . $e->getMessage()]);
+            exit;
+        }
         echo json_encode([
             'ok' => true,
             'total' => euros($total),
@@ -271,6 +290,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $modifiable) {
     $selPostees = $_POST['sel'] ?? [];
 
     $pdo = db();
+    try {
     $pdo->beginTransaction();
 
     $upsert = $pdo->prepare(
@@ -337,6 +357,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $modifiable) {
         $maj->execute([$prixTotal, $configId]);
         $pdo->commit();
         flash('Vos choix ont été enregistrés.');
+        redirect($base . '/client/config.php?config=' . $configId);
+    }
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) { $pdo->rollBack(); }
+        error_log('[LVB] save config #' . $configId . ' : ' . $e->getMessage());
+        flash('Erreur lors de l\'enregistrement : ' . $e->getMessage(), 'erreur');
         redirect($base . '/client/config.php?config=' . $configId);
     }
 }
@@ -520,13 +546,27 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
         fetch('config.php?config=' + encodeURIComponent(CFG), {
             method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: body.toString(), credentials: 'same-origin'
-        }).then(function (r) { return r.json(); }).then(function (d) {
-            if (!d || !d.ok) { return; }
+        }).then(function (r) { return r.text(); }).then(function (txt) {
+            var d;
+            try { d = JSON.parse(txt); } catch (e) { d = null; }
+            if (!d || !d.ok) {
+                if (note) {
+                    note.textContent = '⚠ Échec de l\'enregistrement' + (d && d.error ? ' : ' + d.error : ' (session ou serveur)');
+                    note.classList.add('erreur');
+                }
+                return;
+            }
             var t = document.getElementById('recap-total'); if (t) { t.textContent = d.total; }
             var s = document.getElementById('recap-supp'); if (s) { s.textContent = d.supplements; }
             var n = document.getElementById('recap-nb'); if (n) { n.textContent = d.nb; }
-            if (note) { note.classList.add('flash-on'); setTimeout(function () { note.classList.remove('flash-on'); }, 1200); }
-        }).catch(function () {});
+            if (note) {
+                note.classList.remove('erreur');
+                note.textContent = '✓ Vos choix sont enregistrés automatiquement';
+                note.classList.add('flash-on'); setTimeout(function () { note.classList.remove('flash-on'); }, 1200);
+            }
+        }).catch(function () {
+            if (note) { note.textContent = '⚠ Échec de l\'enregistrement (réseau)'; note.classList.add('erreur'); }
+        });
     }
     window.__autosave = autosave;
 
