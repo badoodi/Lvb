@@ -53,6 +53,19 @@ foreach ($piecesPlan as $pc) {
     }
 }
 
+// Auto-réparation : tout plan doit posséder une pièce « globale » (choix « toute
+// la villa »). Sans elle, les produits globaux tenteraient d'utiliser piece_id=0
+// -> violation de clé étrangère. On la crée si elle manque.
+if (!$pieceGlobale) {
+    db()->prepare(
+        "INSERT INTO pieces_plan (plan_id, nom, type_piece, ordre_affichage)
+         VALUES (?, 'Toute la villa', 'globale', 0)"
+    )->execute([(int) $config['plan_id']]);
+    $gid = (int) db()->lastInsertId();
+    $pieceGlobale = ['id' => $gid, 'nom' => 'Toute la villa', 'type_piece' => 'globale',
+                     'etage' => null, 'description' => null];
+}
+
 /** Pièces concernées par une catégorie selon son flag par_piece. */
 function pieces_de_categorie(array $categorie, array $piecesReelles, ?array $pieceGlobale): array
 {
