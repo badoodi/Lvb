@@ -103,6 +103,14 @@ function piece_caracteristiques(int $pieceId): array
     return $stmt->fetchAll();
 }
 
+/** Images de la galerie d'un plan (hors image de couverture). */
+function images_plan(int $planId): array
+{
+    $stmt = db()->prepare('SELECT * FROM images_plan WHERE plan_id = ? ORDER BY ordre_affichage, id');
+    $stmt->execute([$planId]);
+    return $stmt->fetchAll();
+}
+
 /** Pourcentage d'avancement d'une configuration (0-100). */
 function progression_configuration(int $configId, int $planId, int $formuleId, string $statut): int
 {

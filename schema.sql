@@ -101,7 +101,18 @@ CREATE TABLE plans_villa (
     date_creation   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- Les pièces réelles d'un plan (Chambre 1, Cuisine, Salon...), définies par l'admin.
+-- Galerie d'images d'un plan (en plus de l'image de couverture `plans_villa.image`).
+-- Un plan peut avoir plusieurs vues (façade, étage, coupe...) montrées sur la fiche.
+CREATE TABLE images_plan (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    plan_id         INT UNSIGNED NOT NULL,
+    fichier         VARCHAR(255) NOT NULL,
+    legende         VARCHAR(150) NULL,
+    ordre_affichage INT NOT NULL DEFAULT 0,
+    date_creation   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_img_plan FOREIGN KEY (plan_id) REFERENCES plans_villa(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 -- Chaque plan a aussi une pièce spéciale "globale" pour les catégories qui
 -- concernent toute la villa (fondations, porte d'entrée, escalier...) plutôt
 -- qu'une pièce précise — ça évite de gérer des cas NULL dans les choix du client.

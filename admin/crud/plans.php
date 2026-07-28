@@ -22,6 +22,27 @@ function plan_extra_form(?array $ligne): string
     }
     $html .= '</div>';
 
+    // Galerie d'images (en plus de l'image de couverture ci-dessus).
+    $html .= '<div class="champs-perso"><p class="champs-perso-titre">Galerie d\'images (plusieurs vues du plan)</p>';
+    if ($ligne) {
+        $imgs = images_plan((int) $ligne['id']);
+        if ($imgs) {
+            $html .= '<div class="galerie-admin">';
+            foreach ($imgs as $img) {
+                $src = h($base . '/' . ltrim($img['fichier'], '/'));
+                $html .= '<label class="galerie-admin-item">'
+                      . '<img src="' . $src . '" alt="">'
+                      . '<span><input type="checkbox" name="supprimer_image[]" value="' . (int) $img['id'] . '"> Supprimer</span>'
+                      . '</label>';
+            }
+            $html .= '</div>';
+        }
+    }
+    $html .= '<label class="form-field"><span>Ajouter des images</span>'
+          . '<input type="file" name="galerie[]" accept="image/*" multiple></label>'
+          . '<p class="field-aide">Vous pouvez sélectionner plusieurs fichiers à la fois (jpg, png, webp…).</p>'
+          . '</div>';
+
     if ($ligne) {
         $id = (int) $ligne['id'];
         $html .= '<div class="champs-perso"><p class="champs-perso-titre">Éléments du plan</p>'
@@ -45,6 +66,43 @@ function plan_apres_ecrire(int $id, bool $creation): void
             continue;
         }
         $upsert->execute([$id, (int) $formuleId, (float) $valeur]);
+    }
+
+    // Suppression des images de galerie cochées (fichier + ligne).
+    $aSupprimer = $_POST['supprimer_image'] ?? [];
+    if ($aSupprimer) {
+        $sel = db()->prepare('SELECT fichier FROM images_plan WHERE id = ? AND plan_id = ?');
+        $del = db()->prepare('DELETE FROM images_plan WHERE id = ? AND plan_id = ?');
+        foreach ($aSupprimer as $imgId) {
+            $sel->execute([(int) $imgId, $id]);
+            if ($f = $sel->fetchColumn()) {
+                @unlink(dirname(__DIR__, 2) . '/' . ltrim((string) $f, '/'));
+            }
+            $del->execute([(int) $imgId, $id]);
+        }
+    }
+
+    // Ajout des nouvelles images de galerie (input multiple « galerie[] »).
+    if (!empty($_FILES['galerie']) && is_array($_FILES['galerie']['name'])) {
+        $ordre = (int) db()->query('SELECT COALESCE(MAX(ordre_affichage), 0) FROM images_plan WHERE plan_id = ' . $id)->fetchColumn();
+        $ins = db()->prepare('INSERT INTO images_plan (plan_id, fichier, ordre_affichage) VALUES (?, ?, ?)');
+        foreach ($_FILES['galerie']['name'] as $i => $nom) {
+            if (($_FILES['galerie']['error'][$i] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+                continue;
+            }
+            $fichier = [
+                'name'     => $nom,
+                'tmp_name' => $_FILES['galerie']['tmp_name'][$i],
+                'error'    => $_FILES['galerie']['error'][$i],
+            ];
+            $err = '';
+            $chemin = crud_televerser_image($fichier, $err, 'plan');
+            if ($chemin !== null) {
+                $ins->execute([$id, $chemin, ++$ordre]);
+            } elseif ($err !== '') {
+                flash($err, 'erreur');
+            }
+        }
     }
 
     // Chaque plan doit posséder une pièce « globale » (choix « toute la villa »).

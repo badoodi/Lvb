@@ -265,6 +265,31 @@ img{ max-width:100%; display:block; }
 .plan-specs li{ display:flex; justify-content:space-between; padding:4px 0; }
 .plan-specs li span:last-child{ color: var(--ink); font-weight:600; }
 .plan-cta{ margin-top:auto; font-weight:600; font-size:.88rem; color: var(--blueprint); }
+/* deux boutons dans la carte plan : « Voir plus » à gauche, « Choisir » à droite */
+.plan-actions{ margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.plan-actions .btn-envoyer{ margin-top:0; padding:10px 18px; box-shadow:0 6px 16px rgba(22,38,143,.22); }
+.plan-visuel{ position:relative; display:block; }
+.plan-badge-photos{
+  position:absolute; bottom:10px; right:10px; z-index:2;
+  background:rgba(20,32,58,.72); color:#fff; font-size:.72rem; font-weight:600;
+  padding:4px 10px; border-radius:999px; backdrop-filter:blur(2px);
+}
+
+/* ---------- fiche détaillée d'un plan (galerie) ---------- */
+.plan-detail{ display:grid; grid-template-columns:1.15fr .85fr; gap:32px; align-items:start;
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-sm); margin-top:8px; }
+.plan-galerie-main{ border-radius:var(--radius); overflow:hidden; background:var(--blueprint-soft); }
+.plan-galerie-main img{ width:100%; aspect-ratio:16/11; object-fit:cover; }
+.plan-galerie-main .plan-visuel-vide{ aspect-ratio:16/11; }
+.plan-galerie-vignettes{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+.plan-vignette{ width:84px; height:64px; border-radius:10px; overflow:hidden; border:2px solid transparent; cursor:pointer; padding:0; background:none; transition:border-color .15s; }
+.plan-vignette img{ width:100%; height:100%; object-fit:cover; }
+.plan-vignette:hover{ border-color:var(--blueprint-soft); }
+.plan-vignette.actif{ border-color:var(--blueprint); }
+.plan-detail-infos h1{ font-family:var(--font-display); font-weight:600; font-size:1.8rem; margin:12px 0 10px; }
+.plan-detail-desc{ color:var(--ink-soft); margin-bottom:18px; }
+.plan-specs-detail{ border-top:1px solid var(--line); }
+@media(max-width:760px){ .plan-detail{ grid-template-columns:1fr; } }
 
 /* =========================================================
    FORMULES (choix de formule)
@@ -855,6 +880,11 @@ img{ max-width:100%; display:block; }
 .repeat-row{ margin-bottom:8px; }
 .repeat-duo{ display:flex; gap:10px; }
 .repeat-duo input{ flex:1; }
+/* galerie d'images côté admin (fiche plan) */
+.galerie-admin{ display:flex; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
+.galerie-admin-item{ width:120px; font-size:.74rem; color:var(--ink-soft); cursor:pointer; }
+.galerie-admin-item img{ width:120px; height:80px; object-fit:cover; border-radius:8px; border:1px solid var(--line); margin-bottom:4px; }
+.galerie-admin-item span{ display:flex; align-items:center; gap:5px; }
 /* Champs texte des dimensions / caractéristiques : même style que les
    champs de formulaire (ils sont hors de .form-field). */
 .champs-perso input[type=text]{
@@ -896,7 +926,8 @@ img{ max-width:100%; display:block; }
 /* ---------- choix interactif sur la fiche produit ---------- */
 /* Le badge collection est conçu pour un fond sombre ; sur la fiche (fond clair)
    on le repasse en bleu lisible. */
-.produit-detail-infos .formule-badge{
+.produit-detail-infos .formule-badge,
+.plan-detail-infos .formule-badge{
   color:var(--blueprint); background:var(--blueprint-soft); border-color:transparent;
 }
 .detail-choix .detail-bloc:first-child{ border-top:none; padding-top:0; }

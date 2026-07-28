@@ -140,14 +140,18 @@ layout_client_debut('Mes plans');
     <?php else: ?>
     <div class="plan-grid">
         <?php foreach ($plans as $plan): ?>
-            <a class="plan-card" href="<?= h($base) ?>/client/formule.php?plan=<?= (int) $plan['id'] ?>">
-                <div class="plan-visuel">
+            <div class="plan-card">
+                <a class="plan-visuel" href="<?= h($base) ?>/client/plan.php?plan=<?= (int) $plan['id'] ?>">
                     <?php if (!empty($plan['image'])): ?>
                         <img src="<?= h($base . '/' . ltrim($plan['image'], '/')) ?>" alt="<?= h($plan['nom']) ?>">
                     <?php else: ?>
                         <div class="plan-visuel-vide blueprint-grid"></div>
                     <?php endif; ?>
-                </div>
+                    <?php $nbImgs = count(images_plan((int) $plan['id'])) + (!empty($plan['image']) ? 1 : 0); ?>
+                    <?php if ($nbImgs > 1): ?>
+                        <span class="plan-badge-photos"><?= $nbImgs ?> photos</span>
+                    <?php endif; ?>
+                </a>
                 <div class="plan-info">
                     <h3><?= h($plan['nom']) ?></h3>
                     <p><?= h($plan['description']) ?></p>
@@ -162,9 +166,12 @@ layout_client_debut('Mes plans');
                             <li><span>Chambres</span><span><?= (int) $plan['nombre_chambres'] ?></span></li>
                         <?php endif; ?>
                     </ul>
-                    <span class="plan-cta">Choisir ce plan →</span>
+                    <div class="plan-actions">
+                        <a class="btn-line" href="<?= h($base) ?>/client/plan.php?plan=<?= (int) $plan['id'] ?>">Voir plus</a>
+                        <a class="btn-envoyer btn-inline" href="<?= h($base) ?>/client/formule.php?plan=<?= (int) $plan['id'] ?>">Choisir ce plan →</a>
+                    </div>
                 </div>
-            </a>
+            </div>
         <?php endforeach; ?>
     </div>
     <?php endif; ?>
