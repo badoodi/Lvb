@@ -122,52 +122,84 @@ layout_client_debut($prod['nom']);
                       data-cat="<?= $catId ?>" data-produit="<?= $produitId ?>"
                       data-config="<?= $configId ?>" data-parpiece="<?= $parPiece ? 1 : 0 ?>">
                     <?= csrf_input() ?>
-                    <input type="hidden" id="dc-couleur" value="<?= h($defCoul) ?>">
-                    <input type="hidden" id="dc-dimension" value="<?= h($defDim) ?>">
 
-                    <?php if ($couleurs): ?>
-                        <div class="detail-bloc">
-                            <h3>Choisissez le coloris</h3>
-                            <div class="vm-couleurs">
-                                <?php foreach ($couleurs as $c): ?>
-                                    <span class="vm-couleur<?= $c === $defCoul ? ' actif' : '' ?>"
-                                          data-val="<?= h($c) ?>" title="<?= h(ucfirst($c)) ?>"
-                                          style="background:<?= h(couleur_css($c)) ?>"></span>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if ($dimensions): ?>
-                        <div class="detail-bloc">
-                            <h3>Choisissez les dimensions</h3>
-                            <div class="vm-dims">
-                                <?php foreach ($dimensions as $d): ?>
-                                    <button type="button" class="vm-dim<?= $d === $defDim ? ' actif' : '' ?>"
-                                            data-val="<?= h($d) ?>"><?= h($d) ?></button>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if ($parPiece): ?>
+                    <?php if ($parPiece): /* ---- choix par pièce : coloris/dimensions sous CHAQUE pièce ---- */ ?>
                         <div class="detail-bloc">
                             <h3>Dans quelles pièces&nbsp;?</h3>
                             <div class="detail-pieces-head">
-                                <span class="field-aide">Le coloris et les dimensions choisis ci-dessus s'appliquent aux pièces cochées.</span>
-                                <button type="button" class="btn-tout" id="dc-tout">Tout</button>
+                                <span class="field-aide">Cochez une pièce puis choisissez son coloris et ses dimensions.</span>
+                                <?php if (count($piecesReelles) > 1): ?>
+                                    <button type="button" class="btn-tout" id="dc-tout">Tout</button>
+                                <?php endif; ?>
                             </div>
-                            <div class="detail-pieces">
-                                <?php foreach ($piecesReelles as $pc): $pcid = (int) $pc['id']; ?>
-                                    <label class="piece-check">
-                                        <input type="checkbox" class="dc-piece" value="<?= $pcid ?>"
-                                               <?= isset($selections[$pcid]) ? 'checked' : '' ?>>
-                                        <span class="piece-check-txt"><?= h($pc['nom']) ?><?php if (!empty($pc['etage'])): ?> <small><?= h($pc['etage']) ?></small><?php endif; ?></span>
-                                    </label>
+                            <div class="detail-pieces-col">
+                                <?php foreach ($piecesReelles as $pc):
+                                    $pcid = (int) $pc['id'];
+                                    $meta = $selections[$pcid] ?? [];
+                                    $pcCoul = ($meta['couleur'] ?? '') ?: ($couleurs ? reset($couleurs) : '');
+                                    $pcDim  = ($meta['dimension'] ?? '') ?: ($dimensions ? reset($dimensions) : '');
+                                    ?>
+                                    <div class="piece-row">
+                                        <label class="piece-check">
+                                            <input type="checkbox" class="dc-piece" data-piece="<?= $pcid ?>" value="<?= $pcid ?>"
+                                                   <?= isset($selections[$pcid]) ? 'checked' : '' ?>>
+                                            <span class="piece-check-txt"><?= h($pc['nom']) ?><?php if (!empty($pc['etage'])): ?> <small><?= h($pc['etage']) ?></small><?php endif; ?></span>
+                                        </label>
+                                        <?php if ($couleurs || $dimensions): ?>
+                                            <div class="piece-variantes">
+                                                <input type="hidden" class="dc-coul" data-piece="<?= $pcid ?>" value="<?= h($pcCoul) ?>">
+                                                <input type="hidden" class="dc-dim" data-piece="<?= $pcid ?>" value="<?= h($pcDim) ?>">
+                                                <?php if ($couleurs): ?>
+                                                    <div class="vm-titre">Couleur</div>
+                                                    <div class="vm-couleurs">
+                                                        <?php foreach ($couleurs as $c): ?>
+                                                            <span class="vm-couleur<?= $c === $pcCoul ? ' actif' : '' ?>"
+                                                                  data-piece="<?= $pcid ?>" data-val="<?= h($c) ?>"
+                                                                  title="<?= h(ucfirst($c)) ?>" style="background:<?= h(couleur_css($c)) ?>"></span>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                                <?php if ($dimensions): ?>
+                                                    <div class="vm-titre">Dimensions</div>
+                                                    <div class="vm-dims">
+                                                        <?php foreach ($dimensions as $d): ?>
+                                                            <button type="button" class="vm-dim<?= $d === $pcDim ? ' actif' : '' ?>"
+                                                                    data-piece="<?= $pcid ?>" data-val="<?= h($d) ?>"><?= h($d) ?></button>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
                                 <?php endforeach; ?>
                             </div>
                         </div>
-                    <?php else: ?>
+                    <?php else: /* ---- choix « toute la villa » : un seul coloris ---- */ ?>
+                        <input type="hidden" id="dc-couleur" value="<?= h($defCoul) ?>">
+                        <input type="hidden" id="dc-dimension" value="<?= h($defDim) ?>">
+                        <?php if ($couleurs): ?>
+                            <div class="detail-bloc">
+                                <h3>Choisissez le coloris</h3>
+                                <div class="vm-couleurs">
+                                    <?php foreach ($couleurs as $c): ?>
+                                        <span class="vm-couleur<?= $c === $defCoul ? ' actif' : '' ?>"
+                                              data-val="<?= h($c) ?>" title="<?= h(ucfirst($c)) ?>"
+                                              style="background:<?= h(couleur_css($c)) ?>"></span>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($dimensions): ?>
+                            <div class="detail-bloc">
+                                <h3>Choisissez les dimensions</h3>
+                                <div class="vm-dims">
+                                    <?php foreach ($dimensions as $d): ?>
+                                        <button type="button" class="vm-dim<?= $d === $defDim ? ' actif' : '' ?>"
+                                                data-val="<?= h($d) ?>"><?= h($d) ?></button>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                         <button type="button" class="btn-envoyer" id="dc-choisir" style="width:auto;">
                             <?= $globaleChoisie ? '✓ Produit choisi — cliquez pour retirer' : 'Choisir ce produit pour toute la villa' ?>
                         </button>
@@ -226,8 +258,6 @@ layout_client_debut($prod['nom']);
     var PROD = form.getAttribute('data-produit');
     var PAR_PIECE = form.getAttribute('data-parpiece') === '1';
     var GLOBALE = <?= $globaleId ?>;
-    var coulH = document.getElementById('dc-couleur');
-    var dimH = document.getElementById('dc-dimension');
     var note = document.getElementById('dc-note');
     var choisiGlobal = <?= $globaleChoisie ? 'true' : 'false' ?>;   // état du choix « toute la villa »
 
@@ -255,64 +285,90 @@ layout_client_debut($prod['nom']);
             if (note) { note.classList.add('erreur'); note.textContent = '⚠ Échec réseau'; }
         }).then(function () { enVol = false; traiter(); });
     }
-    function envoyer(piece, produit) {
+    function envoyer(piece, produit, couleur, dimension) {
         var b = new URLSearchParams();
         b.set('_csrf', CSRF); b.set('action', 'ajax_set');
         b.set('cat', CAT); b.set('piece', piece); b.set('produit', produit);
-        b.set('couleur', coulH.value); b.set('dimension', dimH.value);
+        b.set('couleur', couleur || ''); b.set('dimension', dimension || '');
         queue.push(b.toString()); traiter();
     }
-    // Ré-enregistre toutes les pièces actuellement affectées (après changement de coloris/dim).
-    function resauver() {
-        if (PAR_PIECE) {
-            form.querySelectorAll('.dc-piece:checked').forEach(function (c) { envoyer(c.value, PROD); });
-        } else if (choisiGlobal) {
-            envoyer(GLOBALE, PROD);
-        }
-    }
-
-    // Coloris
-    form.querySelectorAll('.vm-couleur').forEach(function (el) {
-        el.addEventListener('click', function () {
-            coulH.value = el.getAttribute('data-val');
-            form.querySelectorAll('.vm-couleur').forEach(function (o) { o.classList.remove('actif'); });
-            el.classList.add('actif');
-            resauver();
-        });
-    });
-    // Dimensions
-    form.querySelectorAll('.vm-dim').forEach(function (el) {
-        el.addEventListener('click', function () {
-            dimH.value = el.getAttribute('data-val');
-            form.querySelectorAll('.vm-dim').forEach(function (o) { o.classList.remove('actif'); });
-            el.classList.add('actif');
-            resauver();
-        });
-    });
 
     if (PAR_PIECE) {
-        // Choix par pièce.
-        form.querySelectorAll('.dc-piece').forEach(function (c) {
-            c.addEventListener('change', function () {
-                envoyer(c.value, c.checked ? PROD : 0);
+        // ---- Coloris et dimensions PROPRES À CHAQUE PIÈCE ----
+        function metaPiece(piece) {
+            var c = form.querySelector('.dc-coul[data-piece="' + piece + '"]');
+            var d = form.querySelector('.dc-dim[data-piece="' + piece + '"]');
+            return { coul: c ? c.value : '', dim: d ? d.value : '' };
+        }
+        function estCochee(piece) {
+            var chk = form.querySelector('.dc-piece[data-piece="' + piece + '"]');
+            return !!(chk && chk.checked);
+        }
+        function sauverPiece(piece, coche) {
+            var m = metaPiece(piece);
+            envoyer(piece, coche ? PROD : 0, m.coul, m.dim);
+        }
+        // Sélection d'une couleur pour une pièce.
+        form.querySelectorAll('.vm-couleur').forEach(function (el) {
+            el.addEventListener('click', function () {
+                var piece = el.getAttribute('data-piece'), val = el.getAttribute('data-val');
+                var hid = form.querySelector('.dc-coul[data-piece="' + piece + '"]'); if (hid) { hid.value = val; }
+                el.parentElement.querySelectorAll('.vm-couleur').forEach(function (o) { o.classList.remove('actif'); });
+                el.classList.add('actif');
+                if (estCochee(piece)) { sauverPiece(piece, true); }
             });
+        });
+        // Sélection d'une dimension pour une pièce.
+        form.querySelectorAll('.vm-dim').forEach(function (el) {
+            el.addEventListener('click', function () {
+                var piece = el.getAttribute('data-piece'), val = el.getAttribute('data-val');
+                var hid = form.querySelector('.dc-dim[data-piece="' + piece + '"]'); if (hid) { hid.value = val; }
+                el.parentElement.querySelectorAll('.vm-dim').forEach(function (o) { o.classList.remove('actif'); });
+                el.classList.add('actif');
+                if (estCochee(piece)) { sauverPiece(piece, true); }
+            });
+        });
+        // Affectation / retrait d'une pièce.
+        form.querySelectorAll('.dc-piece').forEach(function (c) {
+            c.addEventListener('change', function () { sauverPiece(c.getAttribute('data-piece'), c.checked); });
         });
         var tout = document.getElementById('dc-tout');
-        tout.addEventListener('click', function () {
-            var actif = tout.classList.contains('actif');
-            form.querySelectorAll('.dc-piece').forEach(function (c) {
-                if (c.checked === actif) { c.checked = !actif; c.dispatchEvent(new Event('change')); }
+        if (tout) {
+            tout.addEventListener('click', function () {
+                var actif = tout.classList.contains('actif');
+                form.querySelectorAll('.dc-piece').forEach(function (c) {
+                    if (c.checked === actif) { c.checked = !actif; c.dispatchEvent(new Event('change')); }
+                });
+                tout.classList.toggle('actif');
+                tout.textContent = tout.classList.contains('actif') ? 'Aucune' : 'Tout';
             });
-            tout.classList.toggle('actif');
-            tout.textContent = tout.classList.contains('actif') ? 'Aucune' : 'Tout';
-        });
+        }
     } else {
-        // Choix « toute la villa » : bouton bascule.
+        // ---- Choix « toute la villa » : un seul coloris ----
+        var coulH = document.getElementById('dc-couleur');
+        var dimH = document.getElementById('dc-dimension');
+        function metaG() { return { coul: coulH ? coulH.value : '', dim: dimH ? dimH.value : '' }; }
+        function resauver() { if (choisiGlobal) { var m = metaG(); envoyer(GLOBALE, PROD, m.coul, m.dim); } }
+        form.querySelectorAll('.vm-couleur').forEach(function (el) {
+            el.addEventListener('click', function () {
+                coulH.value = el.getAttribute('data-val');
+                form.querySelectorAll('.vm-couleur').forEach(function (o) { o.classList.remove('actif'); });
+                el.classList.add('actif'); resauver();
+            });
+        });
+        form.querySelectorAll('.vm-dim').forEach(function (el) {
+            el.addEventListener('click', function () {
+                dimH.value = el.getAttribute('data-val');
+                form.querySelectorAll('.vm-dim').forEach(function (o) { o.classList.remove('actif'); });
+                el.classList.add('actif'); resauver();
+            });
+        });
         var btn = document.getElementById('dc-choisir');
         btn.classList.toggle('actif', choisiGlobal);
         btn.addEventListener('click', function () {
+            var m = metaG();
             choisiGlobal = !choisiGlobal;
-            envoyer(GLOBALE, choisiGlobal ? PROD : 0);
+            envoyer(GLOBALE, choisiGlobal ? PROD : 0, m.coul, m.dim);
             btn.textContent = choisiGlobal ? '✓ Produit choisi — cliquez pour retirer'
                                            : 'Choisir ce produit pour toute la villa';
             btn.classList.toggle('actif', choisiGlobal);

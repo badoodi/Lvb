@@ -901,8 +901,10 @@ img{ max-width:100%; display:block; }
 }
 .detail-choix .detail-bloc:first-child{ border-top:none; padding-top:0; }
 .detail-pieces-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
-.detail-pieces{ display:grid; grid-template-columns:1fr 1fr; gap:2px 14px; }
-@media(max-width:760px){ .detail-pieces{ grid-template-columns:1fr; } }
+.detail-pieces-col .piece-row{ padding:8px 0; border-bottom:1px dashed var(--line); }
+.detail-pieces-col .piece-row:last-child{ border-bottom:none; }
+/* Le coloris/dimensions d'une pièce apparaissent quand elle est cochée. */
+.detail-pieces-col .piece-row:has(.dc-piece:checked) .piece-variantes{ display:block; }
 
 /* ---------- fond villa : page de connexion ---------- */
 .auth{

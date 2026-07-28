@@ -634,6 +634,28 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
     var CFG = new URLSearchParams(location.search).get('config') || '';
     var note = document.getElementById('autosave-note');
 
+    // Reprise de la position de défilement : on mémorise où le client a scrollé
+    // avant d'ouvrir une fiche produit, et on y revient quand il fait « Retour ».
+    var scrollKey = 'cfgScroll_' + CFG;
+    window.addEventListener('pagehide', function () {
+        try { sessionStorage.setItem(scrollKey, String(window.scrollY)); } catch (e) {}
+    });
+    if (document.referrer.indexOf('produit.php') >= 0) {
+        var yPrec = parseInt(sessionStorage.getItem(scrollKey) || '0', 10);
+        if (yPrec > 0) {
+            // La hauteur de la page peut grandir après coup (polices, reflow) : on
+            // replace le défilement à chaque frame tant que la cible n'est pas
+            // atteinte, pendant 1,5 s maximum.
+            var limite = Date.now() + 1500;
+            (function replacer() {
+                window.scrollTo(0, yPrec);
+                if (Math.abs(window.scrollY - yPrec) > 2 && Date.now() < limite) {
+                    requestAnimationFrame(replacer);
+                }
+            })();
+        }
+    }
+
     // File d'attente : une seule requête d'enregistrement en vol à la fois
     // (évite de saturer le serveur et les conflits d'écriture quand « Tout »
     // affecte plusieurs pièces d'un coup).
