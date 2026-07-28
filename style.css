@@ -936,7 +936,11 @@ img{ max-width:100%; display:block; }
 .produit-choix:has(.produit-radio:checked) .variant-inline{ display:block; }
 
 /* ---------- panneau de choix flottant À DROITE du produit ---------- */
-.produit-assign .piece-menu{ left:calc(100% + 14px); right:auto; top:0; width:300px; max-height:70vh; overflow-y:auto; }
+.produit-assign{ position:relative; }
+/* Quand le panneau est ouvert, la carte passe au-dessus des cartes voisines,
+   sinon celles-ci recouvrent le panneau flottant et interceptent les clics. */
+.produit-assign:has(.piece-menu:not([hidden])){ z-index:60; }
+.produit-assign .piece-menu{ left:calc(100% + 14px); right:auto; top:0; width:300px; max-height:70vh; overflow-y:auto; z-index:60; box-shadow:0 12px 40px rgba(20,38,143,.18); }
 .piece-menu-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .btn-tout{ border:1px solid var(--blueprint); background:var(--blueprint-soft); color:var(--blueprint); border-radius:var(--radius-pill); padding:4px 12px; font-size:.74rem; font-weight:700; cursor:pointer; flex-shrink:0; transition:all .14s; }
 .btn-tout:hover, .btn-tout.actif{ background:var(--blueprint); color:#fff; }

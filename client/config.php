@@ -162,8 +162,8 @@ function variantes_html(array $prod, int $catId, int $pieceId, int $pid, bool $a
     $d = 'data-cat="' . $catId . '" data-piece="' . $pieceId . '" data-product="' . $pid . '"';
 
     ob_start(); ?>
-    <input type="hidden" class="coul-hidden" data-cat="<?= $catId ?>" data-piece="<?= $pieceId ?>" value="<?= h($defCoul) ?>">
-    <input type="hidden" class="dim-hidden" data-cat="<?= $catId ?>" data-piece="<?= $pieceId ?>" value="<?= h($defDim) ?>">
+    <input type="hidden" class="coul-hidden" data-cat="<?= $catId ?>" data-piece="<?= $pieceId ?>" data-product="<?= $pid ?>" value="<?= h($defCoul) ?>">
+    <input type="hidden" class="dim-hidden" data-cat="<?= $catId ?>" data-piece="<?= $pieceId ?>" data-product="<?= $pid ?>" value="<?= h($defDim) ?>">
     <?php if ($couleurs): ?>
         <div class="vm-titre">Couleur</div>
         <div class="vm-couleurs">
@@ -624,17 +624,17 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
     var CFG = new URLSearchParams(location.search).get('config') || '';
     var note = document.getElementById('autosave-note');
 
-    // Sauvegarde automatique d'un choix (AJAX).
-    function autosave(cat, piece, produit) {
-        var cEl = document.querySelector('.coul-hidden[data-cat="' + cat + '"][data-piece="' + piece + '"]');
-        var dEl = document.querySelector('.dim-hidden[data-cat="' + cat + '"][data-piece="' + piece + '"]');
-        var body = new URLSearchParams();
-        body.set('_csrf', CSRF); body.set('action', 'ajax_set');
-        body.set('cat', cat); body.set('piece', piece); body.set('produit', produit);
-        body.set('couleur', cEl ? cEl.value : ''); body.set('dimension', dEl ? dEl.value : '');
+    // File d'attente : une seule requête d'enregistrement en vol à la fois
+    // (évite de saturer le serveur et les conflits d'écriture quand « Tout »
+    // affecte plusieurs pièces d'un coup).
+    var queue = [], enVol = false;
+    function traiterFile() {
+        if (enVol || !queue.length) { return; }
+        enVol = true;
+        var job = queue.shift();
         fetch('config.php?config=' + encodeURIComponent(CFG), {
             method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: body.toString(), credentials: 'same-origin'
+            body: job.toString(), credentials: 'same-origin'
         }).then(function (r) { return r.text(); }).then(function (txt) {
             var d;
             try { d = JSON.parse(txt); } catch (e) { d = null; }
@@ -643,19 +643,32 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
                     note.textContent = '⚠ Échec de l\'enregistrement' + (d && d.error ? ' : ' + d.error : ' (session ou serveur)');
                     note.classList.add('erreur');
                 }
-                return;
-            }
-            var t = document.getElementById('recap-total'); if (t) { t.textContent = d.total; }
-            var s = document.getElementById('recap-supp'); if (s) { s.textContent = d.supplements; }
-            var n = document.getElementById('recap-nb'); if (n) { n.textContent = d.nb; }
-            if (note) {
-                note.classList.remove('erreur');
-                note.textContent = '✓ Vos choix sont enregistrés automatiquement';
-                note.classList.add('flash-on'); setTimeout(function () { note.classList.remove('flash-on'); }, 1200);
+            } else {
+                var t = document.getElementById('recap-total'); if (t) { t.textContent = d.total; }
+                var s = document.getElementById('recap-supp'); if (s) { s.textContent = d.supplements; }
+                var n = document.getElementById('recap-nb'); if (n) { n.textContent = d.nb; }
+                if (note) {
+                    note.classList.remove('erreur');
+                    note.textContent = '✓ Vos choix sont enregistrés automatiquement';
+                    note.classList.add('flash-on'); setTimeout(function () { note.classList.remove('flash-on'); }, 1200);
+                }
             }
         }).catch(function () {
             if (note) { note.textContent = '⚠ Échec de l\'enregistrement (réseau)'; note.classList.add('erreur'); }
-        });
+        }).then(function () { enVol = false; traiterFile(); });
+    }
+
+    // Sauvegarde automatique d'un choix (AJAX, mise en file).
+    function autosave(cat, piece, produit) {
+        var sel = '[data-cat="' + cat + '"][data-piece="' + piece + '"][data-product="' + produit + '"]';
+        var cEl = document.querySelector('.coul-hidden' + sel);
+        var dEl = document.querySelector('.dim-hidden' + sel);
+        var body = new URLSearchParams();
+        body.set('_csrf', CSRF); body.set('action', 'ajax_set');
+        body.set('cat', cat); body.set('piece', piece); body.set('produit', produit);
+        body.set('couleur', cEl ? cEl.value : ''); body.set('dimension', dEl ? dEl.value : '');
+        queue.push(body);
+        traiterFile();
     }
     window.__autosave = autosave;
 
@@ -745,7 +758,7 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
             e.stopPropagation(); e.preventDefault();
             var cat = el.getAttribute('data-cat'), piece = el.getAttribute('data-piece'),
                 prod = el.getAttribute('data-product'), val = el.getAttribute('data-val');
-            var hid = document.querySelector('.coul-hidden[data-cat="' + cat + '"][data-piece="' + piece + '"]');
+            var hid = document.querySelector('.coul-hidden[data-cat="' + cat + '"][data-piece="' + piece + '"][data-product="' + prod + '"]');
             if (hid) { hid.value = val; }
             el.parentElement.querySelectorAll('.vm-couleur').forEach(function (o) { o.classList.remove('actif'); });
             el.classList.add('actif');
@@ -758,7 +771,7 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
             e.stopPropagation(); e.preventDefault();
             var cat = el.getAttribute('data-cat'), piece = el.getAttribute('data-piece'),
                 prod = el.getAttribute('data-product'), val = el.getAttribute('data-val');
-            var hid = document.querySelector('.dim-hidden[data-cat="' + cat + '"][data-piece="' + piece + '"]');
+            var hid = document.querySelector('.dim-hidden[data-cat="' + cat + '"][data-piece="' + piece + '"][data-product="' + prod + '"]');
             if (hid) { hid.value = val; }
             el.parentElement.querySelectorAll('.vm-dim').forEach(function (o) { o.classList.remove('actif'); });
             el.classList.add('actif');
