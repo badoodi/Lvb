@@ -61,66 +61,57 @@ layout_client_debut('Mes plans');
         <span class="count"><?= count($projets) ?> projet(s)</span>
     </div>
     <div class="projet-list">
+        <?php $statutCourt = ['en_cours' => 'En cours', 'en_attente' => 'En attente', 'validee' => 'Validée']; ?>
         <?php foreach ($projets as $pr): ?>
             <?php
             $niveau = (int) $pr['formule_niveau'];
             $villaImg = $base . '/assets/formule-' . (in_array($niveau, [1, 2, 3], true) ? $niveau : 1) . '.jpg';
             $planImg = !empty($pr['plan_image']) ? ($base . '/' . ltrim($pr['plan_image'], '/')) : '';
             $pct = progression_configuration((int) $pr['id'], (int) $pr['plan_id'], (int) $pr['formule_id'], $pr['statut']);
+            $estEnCours = $pr['statut'] === 'en_cours';
             ?>
-            <div class="projet-card projet-card-wide">
-                <div class="projet-villa" style="background-image:url('<?= h($villaImg) ?>')"></div>
-                <div class="projet-milieu">
-                    <div class="projet-meta">
-                        <span class="badge badge-<?= h($pr['statut']) ?>"><?= h($libelleStatut[$pr['statut']]) ?></span>
-                        <span class="projet-date">Créé le <?= h(date('d/m/Y', strtotime($pr['date_creation']))) ?></span>
-                    </div>
-                    <h3><?= h($pr['plan_nom']) ?></h3>
-                    <p class="projet-formule">Collection <strong><?= h($pr['formule_nom']) ?></strong></p>
-                    <p class="projet-prix"><?= euros($pr['prix_total']) ?></p>
-                    <div class="projet-progress">
-                        <div class="progress-head"><span>Avancement de la configuration</span><span><?= $pct ?>%</span></div>
-                        <div class="progress-bar"><span style="width:<?= $pct ?>%"></span></div>
-                    </div>
-                    <div class="projet-actions">
-                    <?php if ($pr['statut'] === 'en_cours'): ?>
-                        <a class="btn-line" href="<?= h($base) ?>/client/config.php?config=<?= (int) $pr['id'] ?>">
-                            Continuer la configuration →
-                        </a>
-                    <?php else: ?>
-                        <a class="btn-line" href="<?= h($base) ?>/client/config.php?config=<?= (int) $pr['id'] ?>">
-                            Voir le détail
-                        </a>
-                    <?php endif; ?>
-                    <?php if (in_array($pr['statut'], ['en_attente', 'validee'], true)): ?>
-                        <a class="btn-line" href="<?= h($base) ?>/pdf_recap.php?config=<?= (int) $pr['id'] ?>">
-                            Récapitulatif (PDF)
-                        </a>
-                    <?php endif; ?>
-                    <?php if ($pr['statut'] === 'validee'): ?>
-                        <a class="btn-line" href="<?= h($base) ?>/client/documents.php?config=<?= (int) $pr['id'] ?>">
-                            Documents techniques
-                        </a>
-                    <?php endif; ?>
-                    <?php if (in_array($pr['statut'], ['en_cours', 'en_attente'], true)): ?>
-                        <form method="post" onsubmit="return confirm('Supprimer définitivement cette configuration ? Cette action est irréversible.');">
-                            <?= csrf_input() ?>
-                            <input type="hidden" name="action" value="annuler">
-                            <input type="hidden" name="config_id" value="<?= (int) $pr['id'] ?>">
-                            <button type="submit" class="btn-line btn-danger btn-full">Supprimer cette configuration</button>
-                        </form>
-                    <?php endif; ?>
-                    </div>
-                </div>
-                <div class="projet-plan">
-                    <span class="projet-plan-lbl">Plan de la villa</span>
+            <article class="projet-carte" style="background-image:url('<?= h($villaImg) ?>')">
+                <span class="projet-carte-voile"></span>
+                <div class="projet-carte-top">
                     <?php if ($planImg): ?>
-                        <img src="<?= h($planImg) ?>" alt="Plan <?= h($pr['plan_nom']) ?>">
+                        <span class="projet-mini-plan" style="background-image:url('<?= h($planImg) ?>')" title="Plan de la villa"></span>
                     <?php else: ?>
-                        <div class="projet-plan-vide">⌂</div>
+                        <span class="projet-mini-plan projet-mini-vide">⌂</span>
                     <?php endif; ?>
+                    <span class="glass-pill statut-<?= h($pr['statut']) ?>"><?= h($statutCourt[$pr['statut']] ?? $pr['statut']) ?></span>
                 </div>
-            </div>
+                <div class="projet-carte-inner">
+                    <div class="projet-carte-titre">
+                        <h3><?= h($pr['plan_nom']) ?></h3>
+                        <span class="glass-pill prix-pill"><?= euros($pr['prix_total']) ?></span>
+                    </div>
+                    <p class="projet-carte-desc">Collection <?= h($pr['formule_nom']) ?> · Créé le <?= h(date('d/m/Y', strtotime($pr['date_creation']))) ?></p>
+                    <div class="projet-carte-pills">
+                        <span class="glass-pill"><?= $pct ?>% configuré</span>
+                        <?php if ($pr['statut'] === 'validee'): ?><span class="glass-pill">Documents disponibles</span><?php endif; ?>
+                    </div>
+                    <div class="projet-progress-glass"><span class="barre"><span style="width:<?= $pct ?>%"></span></span></div>
+                    <a class="projet-carte-btn" href="<?= h($base) ?>/client/config.php?config=<?= (int) $pr['id'] ?>">
+                        <?= $estEnCours ? 'Continuer la configuration' : 'Voir le détail' ?> →
+                    </a>
+                    <div class="projet-carte-sec">
+                        <?php if (in_array($pr['statut'], ['en_attente', 'validee'], true)): ?>
+                            <a href="<?= h($base) ?>/pdf_recap.php?config=<?= (int) $pr['id'] ?>">Récapitulatif PDF</a>
+                        <?php endif; ?>
+                        <?php if ($pr['statut'] === 'validee'): ?>
+                            <a href="<?= h($base) ?>/client/documents.php?config=<?= (int) $pr['id'] ?>">Documents</a>
+                        <?php endif; ?>
+                        <?php if (in_array($pr['statut'], ['en_cours', 'en_attente'], true)): ?>
+                            <form method="post" onsubmit="return confirm('Supprimer définitivement cette configuration ? Cette action est irréversible.');">
+                                <?= csrf_input() ?>
+                                <input type="hidden" name="action" value="annuler">
+                                <input type="hidden" name="config_id" value="<?= (int) $pr['id'] ?>">
+                                <button type="submit" class="sup">Supprimer</button>
+                            </form>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </article>
         <?php endforeach; ?>
     </div>
     <?php endif; ?>

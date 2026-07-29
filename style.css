@@ -964,22 +964,70 @@ img{ max-width:100%; display:block; }
 .welcome-inner h1 em{ font-style:normal; color:#B9CDF3; }
 
 /* ---------- carte projet redessinée (villa | texte | plan) ---------- */
-.projet-list{ display:flex; flex-direction:column; gap:18px; }
-.projet-card-wide{ display:grid; grid-template-columns:210px 1fr 240px; padding:0; overflow:hidden; }
-.projet-villa{ background:#16244f center/cover no-repeat; min-height:210px; }
-.projet-milieu{ padding:22px 24px; min-width:0; }
-.projet-milieu h3{ font-family:var(--font-display); font-weight:600; font-size:1.3rem; margin-bottom:4px; }
-.projet-plan{ padding:18px; border-left:1px solid var(--line); display:flex; flex-direction:column; gap:8px; background:#FAFBFF; }
-.projet-plan-lbl{ font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); font-weight:600; }
-.projet-plan img{ width:100%; border-radius:var(--radius-sm); object-fit:cover; max-height:170px; }
-.projet-plan-vide{ aspect-ratio:4/3; display:grid; place-items:center; font-size:2.5rem; color:var(--blueprint); background:linear-gradient(135deg,var(--blueprint-soft),#EEF2FC); border-radius:var(--radius-sm); }
-.projet-progress{ margin:12px 0 16px; }
-.progress-head{ display:flex; justify-content:space-between; font-size:.76rem; color:var(--ink-soft); margin-bottom:6px; font-weight:600; }
-.progress-bar{ height:8px; background:var(--blueprint-soft); border-radius:999px; overflow:hidden; }
-.progress-bar span{ display:block; height:100%; background:linear-gradient(90deg,var(--blueprint),#3D63C9); border-radius:999px; transition:width .3s; }
-.projet-actions{ display:flex; flex-wrap:wrap; gap:8px; }
-.projet-actions form{ margin:0; }
-@media(max-width:760px){ .projet-card-wide{ grid-template-columns:1fr; } .projet-villa{ min-height:130px; } .projet-plan{ border-left:none; border-top:1px solid var(--line); } }
+.projet-list{ display:flex; flex-direction:column; gap:20px; }
+
+/* ---------- carte projet « image-forward » (style app) ---------- */
+.projet-carte{
+  position:relative; display:flex; border-radius:26px; overflow:hidden;
+  min-height:320px; background:#16244f center/cover no-repeat;
+  box-shadow:0 18px 44px rgba(20,32,74,.16);
+}
+.projet-carte-voile{
+  position:absolute; inset:0; z-index:0;
+  background:linear-gradient(102deg, rgba(11,17,42,.12) 18%, rgba(11,17,42,.60) 48%, rgba(11,17,42,.93) 100%);
+}
+.projet-carte-top{
+  position:absolute; top:0; left:0; right:0; z-index:2;
+  display:flex; align-items:center; justify-content:space-between; padding:18px 20px;
+}
+.projet-mini-plan{
+  width:48px; height:48px; border-radius:14px; background:#fff center/cover no-repeat;
+  border:2px solid rgba(255,255,255,.55); box-shadow:0 4px 16px rgba(0,0,0,.28);
+}
+.projet-mini-plan.projet-mini-vide{ display:grid; place-items:center; color:var(--blueprint); background:#EEF2FC; font-size:1.4rem; }
+.glass-pill{
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,.17); border:1px solid rgba(255,255,255,.30);
+  backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
+  color:#fff; font-size:.78rem; font-weight:600; padding:6px 14px; border-radius:999px; white-space:nowrap;
+}
+.projet-carte-inner{
+  position:relative; z-index:1; margin-left:auto; width:56%; min-width:340px;
+  display:flex; flex-direction:column; justify-content:flex-end; gap:11px;
+  padding:26px 28px 24px; color:#fff;
+}
+.projet-carte-titre{ display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.projet-carte-titre h3{ font-family:var(--font-display); font-weight:700; font-size:1.9rem; line-height:1.1; color:#fff; }
+.prix-pill{ background:rgba(9,14,34,.55); border-color:rgba(255,255,255,.20); font-size:.95rem; font-weight:700; padding:8px 15px; flex-shrink:0; }
+.projet-carte-desc{ color:rgba(255,255,255,.84); font-size:.9rem; }
+.projet-carte-pills{ display:flex; flex-wrap:wrap; gap:8px; }
+.projet-carte-pills .statut-validee, .glass-pill.statut-validee{ background:rgba(22,163,74,.34); border-color:rgba(120,230,160,.5); }
+.projet-progress-glass .barre{ display:block; height:6px; border-radius:999px; background:rgba(255,255,255,.26); overflow:hidden; }
+.projet-progress-glass .barre span{ display:block; height:100%; background:#fff; border-radius:999px; transition:width .3s; }
+.projet-carte-btn{
+  display:block; text-align:center; margin-top:4px;
+  background:#fff; color:var(--ink); font-weight:700; font-size:1rem;
+  padding:15px 20px; border-radius:999px; box-shadow:0 12px 28px rgba(0,0,0,.24);
+  transition:transform .15s, box-shadow .15s;
+}
+.projet-carte-btn:hover{ transform:translateY(-2px); box-shadow:0 16px 34px rgba(0,0,0,.3); }
+.projet-carte-sec{ display:flex; flex-wrap:wrap; gap:8px; margin-top:2px; }
+.projet-carte-sec form{ margin:0; }
+.projet-carte-sec a, .projet-carte-sec button{
+  display:inline-flex; align-items:center; background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.24); color:#fff; font-size:.76rem; font-weight:600;
+  padding:7px 13px; border-radius:999px; cursor:pointer; transition:background .14s;
+}
+.projet-carte-sec a:hover, .projet-carte-sec button:hover{ background:rgba(255,255,255,.28); }
+.projet-carte-sec .sup{ background:rgba(224,83,58,.30); border-color:rgba(224,83,58,.5); }
+
+/* Version mobile : carte verticale (image en haut, contenu en bas). */
+@media(max-width:760px){
+  .projet-carte{ flex-direction:column; min-height:500px; }
+  .projet-carte-voile{ background:linear-gradient(180deg, rgba(11,17,42,.06) 24%, rgba(11,17,42,.55) 54%, rgba(11,17,42,.95) 100%); }
+  .projet-carte-inner{ width:100%; min-width:0; margin-left:0; margin-top:auto; }
+  .projet-carte-titre h3{ font-size:1.7rem; }
+}
 
 /* ---------- indicateur d'auto-sauvegarde (config) ---------- */
 .autosave-note{ margin-top:14px; font-size:.8rem; font-weight:600; color:var(--green); background:#F0FBF5; border:1px solid #CDEBD9; border-radius:var(--radius-sm); padding:9px 12px; text-align:center; transition:transform .15s, box-shadow .15s; }
