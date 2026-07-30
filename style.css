@@ -1238,7 +1238,8 @@ body.modal-ouvert{ overflow:hidden; }
     padding:5px; gap:5px; box-shadow:var(--shadow-sm); margin-bottom:18px;
   }
   .gc-tabs .gc-tab{ flex:1 1 0; justify-content:center; border:none; background:transparent; padding:11px 6px; font-size:.85rem; }
-  .gc-tabs .gc-tab.actif{ box-shadow:none; }
+  .gc-tabs .gc-tab.actif{ background:var(--blueprint); color:#fff; border-radius:12px; box-shadow:none; }
+  .gc-tabs .gc-tab.actif .gc-tab-num{ background:rgba(255,255,255,.26); color:#fff; }
 
   /* (4) Chaque catégorie (Briques fondations…) : carte pleine largeur, sans marge. */
   .grande-cat .category{

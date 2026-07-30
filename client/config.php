@@ -849,7 +849,7 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
     document.querySelectorAll('.produit-choix:not(.produit-choix-modal)').forEach(function (card) {
         card.addEventListener('click', function (e) {
             if (e.target.closest('.btn-voir-p')) { return; }
-            if (estMobileVue() && actionsModal) { e.preventDefault(); ouvrirActions(card); }
+            if (estMobileVue() && actionsModal) { e.preventDefault(); e.stopPropagation(); ouvrirActions(card); }
         });
     });
     // « Toute la villa » : bouton « Choisir ce produit » dans la modale -> coche
