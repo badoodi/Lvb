@@ -520,13 +520,29 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
                 </div>
             <?php endif; ?>
 
-            <?php foreach ($grandesCats as $gc):
+            <?php $totalGc = count($grandesCats); ?>
+            <?php if ($totalGc > 1): ?>
+            <div class="gc-tabs" role="tablist">
+                <?php foreach ($grandesCats as $i => $gc): ?>
+                    <button type="button" class="gc-tab<?= $i === 0 ? ' actif' : '' ?>" data-gc="<?= $i ?>" role="tab">
+                        <span class="gc-tab-num"><?= $i + 1 ?></span><?= h($gc['nom']) ?>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+
+            <div class="gc-panels">
+            <?php foreach ($grandesCats as $i => $gc):
                 $catStmt->execute([(int) $gc['id']]);
                 $cats = $catStmt->fetchAll(); ?>
+                <section class="gc-panel<?= $i === 0 ? ' actif' : '' ?>" data-gc="<?= $i ?>">
                 <div class="grande-cat">
                     <div class="grande-cat-head">
-                        <span class="category-tag">Gros bloc</span>
+                        <span class="category-tag">Étape <?= $i + 1 ?> / <?= $totalGc ?></span>
                         <h2><?= h($gc['nom']) ?></h2>
+                        <?php if (!empty($gc['description'])): ?>
+                            <p class="gc-desc"><?= h($gc['description']) ?></p>
+                        <?php endif; ?>
                     </div>
 
                     <?php foreach ($cats as $cat):
@@ -623,8 +639,17 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
-                </div>
+                </div><!-- .grande-cat -->
+                <?php if ($i < $totalGc - 1): ?>
+                    <div class="gc-suivant-zone">
+                        <button type="button" class="gc-suivant" data-next="<?= $i + 1 ?>">
+                            Suivant : <?= h($grandesCats[$i + 1]['nom']) ?> →
+                        </button>
+                    </div>
+                <?php endif; ?>
+                </section><!-- .gc-panel -->
             <?php endforeach; ?>
+            </div><!-- .gc-panels -->
         </div>
 
         <aside class="recap">
@@ -890,6 +915,37 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
         m.addEventListener('click', function (e) { e.stopPropagation(); });
     });
     document.addEventListener('click', closeMenus);
+
+    // --- Menu horizontal des grandes catégories (Gros œuvres / Œuvres secondaires) ---
+    // Bascule d'un panneau à l'autre avec une animation fondu + mouvement.
+    function activerGc(idx) {
+        idx = String(idx);
+        var cible = document.querySelector('.gc-panel[data-gc="' + idx + '"]');
+        var courant = document.querySelector('.gc-panel.actif');
+        if (!cible || cible === courant) { return; }
+        document.querySelectorAll('.gc-tab').forEach(function (t) {
+            t.classList.toggle('actif', t.getAttribute('data-gc') === idx);
+        });
+        var afficher = function () { cible.classList.add('actif'); };
+        if (courant) {
+            courant.classList.remove('actif');
+            courant.classList.add('sortie');
+            setTimeout(function () { courant.classList.remove('sortie'); afficher(); }, 230);
+        } else {
+            afficher();
+        }
+        // On remonte en haut du menu des étapes.
+        var repere = document.querySelector('.gc-tabs') || cible;
+        var y = repere.getBoundingClientRect().top + window.scrollY - 90;
+        window.scrollTo({ top: y < 0 ? 0 : y, behavior: 'smooth' });
+    }
+    document.querySelectorAll('.gc-tab').forEach(function (t) {
+        t.addEventListener('click', function () { activerGc(t.getAttribute('data-gc')); });
+    });
+    document.querySelectorAll('.gc-suivant').forEach(function (b) {
+        b.addEventListener('click', function () { activerGc(b.getAttribute('data-next')); });
+    });
+
     // Compteurs initiaux.
     document.querySelectorAll('.produit-liste.piece-first').forEach(function (l) {
         refresh(l.getAttribute('data-cat'));
