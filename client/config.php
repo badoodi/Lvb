@@ -946,6 +946,14 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
         b.addEventListener('click', function () { activerGc(b.getAttribute('data-next')); });
     });
 
+    // --- Accordéon des catégories (mobile) : le titre ouvre/ferme le contenu. ---
+    function estMobile() { return window.matchMedia('(max-width: 760px)').matches; }
+    document.querySelectorAll('.category-head').forEach(function (head) {
+        head.addEventListener('click', function () {
+            if (estMobile()) { head.parentElement.classList.toggle('ouvert'); }
+        });
+    });
+
     // Compteurs initiaux.
     document.querySelectorAll('.produit-liste.piece-first').forEach(function (l) {
         refresh(l.getAttribute('data-cat'));
