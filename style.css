@@ -1264,3 +1264,24 @@ body.modal-ouvert{ overflow:hidden; }
     border-radius:0; border-left:none; border-right:none;
   }
 }
+
+/* (3) MOBILE : modale d'actions produit (Choisir / Voir en vertical) */
+.prod-actions{ display:none; }
+@media (max-width: 760px){
+  /* Les boutons Choisir / Voir + n'apparaissent plus sur la carte : ils passent
+     dans une modale au clic sur le produit. */
+  .produit-assign .produit-actions,
+  .produit-choix .produit-actions{ display:none; }
+
+  .prod-actions[hidden]{ display:none; }
+  .prod-actions{
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:210;
+    width:min(340px, 92vw); background:#fff; border:1px solid var(--line);
+    border-radius:var(--radius); padding:26px 22px 22px; box-shadow:0 24px 70px rgba(10,16,32,.42);
+  }
+  .prod-actions.ouvert{ display:block; animation:modalIn .18s ease; }
+  .prod-actions-nom{ font-family:var(--font-display); font-weight:600; font-size:1.2rem; color:var(--ink); margin-bottom:18px; padding-right:30px; }
+  .prod-actions-btns{ display:flex; flex-direction:column; gap:10px; }
+  .prod-actions-btns .btn-envoyer{ margin-top:0; }
+  .prod-actions-btns .btn-line{ justify-content:center; padding:13px; }
+}

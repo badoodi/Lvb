@@ -682,6 +682,15 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
 
 <div class="modal-backdrop" hidden></div>
 
+<div class="prod-actions" hidden role="dialog" aria-modal="true">
+    <button type="button" class="piece-menu-close" aria-label="Fermer">&times;</button>
+    <div class="prod-actions-nom"></div>
+    <div class="prod-actions-btns">
+        <button type="button" class="btn-envoyer prod-act-choisir">Choisir ce produit</button>
+        <a class="btn-line prod-act-voir" href="#">Voir la fiche</a>
+    </div>
+</div>
+
 <script>
 (function () {
     var CSRF = (document.querySelector('input[name=_csrf]') || {}).value || '';
@@ -774,8 +783,12 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
     }
     var backdrop = document.querySelector('.modal-backdrop');
     // Ferme la fenêtre (modale) de choix des pièces + l'overlay.
+    var actionsModal = document.querySelector('.prod-actions');
+    var carteActive = null;   // carte produit visée par la modale d'actions (mobile)
+    function estMobileVue() { return window.matchMedia('(max-width: 760px)').matches; }
     function closeMenus() {
         document.querySelectorAll('.piece-menu').forEach(function (m) { m.classList.remove('ouvert'); m.hidden = true; });
+        if (actionsModal) { actionsModal.classList.remove('ouvert'); actionsModal.hidden = true; }
         if (backdrop) { backdrop.hidden = true; }
         document.body.classList.remove('modal-ouvert');
     }
@@ -786,6 +799,34 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
         menu.hidden = false; menu.classList.add('ouvert');
         document.body.classList.add('modal-ouvert');
     }
+    // Mobile : au clic sur un produit, une modale présente les boutons Choisir / Voir.
+    function ouvrirActions(card) {
+        carteActive = card;
+        var nom = card.querySelector('.produit-nom');
+        actionsModal.querySelector('.prod-actions-nom').textContent = nom ? nom.textContent : '';
+        var voir = card.querySelector('.btn-voir-p');
+        var lien = actionsModal.querySelector('.prod-act-voir');
+        if (voir) { lien.href = voir.getAttribute('href'); lien.hidden = false; } else { lien.hidden = true; }
+        closeMenus();
+        if (backdrop) { backdrop.hidden = false; }
+        actionsModal.hidden = false; actionsModal.classList.add('ouvert');
+        document.body.classList.add('modal-ouvert');
+    }
+    if (actionsModal) {
+        // « Choisir » dans la modale d'actions -> lance le vrai choix du produit.
+        actionsModal.querySelector('.prod-act-choisir').addEventListener('click', function (e) {
+            e.stopPropagation();
+            var card = carteActive; if (!card) { return; }
+            actionsModal.classList.remove('ouvert'); actionsModal.hidden = true;
+            if (card.classList.contains('produit-assign') || card.classList.contains('produit-choix-modal')) {
+                openMenu(card.querySelector('.piece-menu'));
+            } else {
+                var radio = card.querySelector('.produit-radio');
+                if (radio) { radio.checked = true; radio.dispatchEvent(new Event('change', { bubbles: true })); }
+                closeMenus();
+            }
+        });
+    }
     // Bouton « Voir d'autres options » -> révèle les produits de la formule supérieure.
     document.querySelectorAll('.voir-options').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -795,12 +836,20 @@ layout_client_debut('Configuration — ' . $config['plan_nom']);
             btn.classList.toggle('actif', show);
         });
     });
-    // Clic sur la carte produit (ou son bouton « Choisir ») -> ouvre la modale de choix.
+    // Clic sur la carte produit -> mobile : modale d'actions ; desktop : modale de choix directe.
     document.querySelectorAll('.produit-assign, .produit-choix-modal').forEach(function (card) {
         card.addEventListener('click', function (e) {
             if (e.target.closest('.piece-menu') || e.target.closest('.btn-voir-p')) { return; }
             e.stopPropagation();
-            openMenu(card.querySelector('.piece-menu'));
+            if (estMobileVue() && actionsModal) { ouvrirActions(card); }
+            else { openMenu(card.querySelector('.piece-menu')); }
+        });
+    });
+    // Produit simple (« toute la villa » sans variante) : sur mobile, passer aussi par la modale d'actions.
+    document.querySelectorAll('.produit-choix:not(.produit-choix-modal)').forEach(function (card) {
+        card.addEventListener('click', function (e) {
+            if (e.target.closest('.btn-voir-p')) { return; }
+            if (estMobileVue() && actionsModal) { e.preventDefault(); ouvrirActions(card); }
         });
     });
     // « Toute la villa » : bouton « Choisir ce produit » dans la modale -> coche
